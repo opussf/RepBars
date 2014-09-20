@@ -1,0 +1,41 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\FrameXML\UI.xsd">
+
+	<StatusBar name="FB_FactionBarTemplate" inherits="TextStatusBar" virtual="true">
+		<Size x="390" y="12" />
+		<BarTexture file="Interface\TargetingFrame\UI-StatusBar" />
+		<BarColor r="0.0" g="0.3" b="0.9" />
+	</StatusBar>
+
+	<FontString name="FB_FactionBarTextTemplate" inherits="GameFontNormalSmall" virtual="true">
+		<Color r="1" g="1" b="1" />
+	</FontString>
+
+	<Frame name="FB_Frame" frameStrata="BACKGROUND" toplevel="false" enableMouse="false" movable="false" parent="UIParent">
+		<Size x="390" y="12" />
+		<Anchors>
+			<Anchor point="TOP" />
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture setAllPoints="true">
+					<Color r="0.0" g="0.0" b="0.0" a="0.25" />
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				FB.OnLoad();
+				self:Hide();
+			</OnLoad>
+			<OnUpdate>
+				FB.OnUpdate(arg1);
+			</OnUpdate>
+			<OnEvent>
+				FB[event](self, ...)
+			</OnEvent>
+		</Scripts>
+	</Frame>
+</Ui>

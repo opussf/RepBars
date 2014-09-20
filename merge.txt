@@ -1,0 +1,121 @@
+Index: src/FactionBarsOptions.xml
+===================================================================
+--- src/FactionBarsOptions.xml	(revision 966)
++++ src/FactionBarsOptions.xml	(working copy)
+@@ -46,7 +46,7 @@
+ 					</OnValueChanged>
+ 				</Scripts>
+ 			</Slider>
+-			<CheckButton name="$parent_ShowStandingBox" inherits="OptionsCheckButtonTemplate">
++			<CheckButton name="$parent_AutoChangeWatchedBox" inherits="OptionsCheckButtonTemplate">
+ 				<Anchors>
+ 					<Anchor point="TOPLEFT" relativeTo="$parent_TrackPeriodSlider" relativePoint="BOTTOMLEFT">
+ 						<Offset>
+@@ -56,6 +56,34 @@
+ 				</Anchors>
+ 				<Scripts>
+ 					<OnLoad>
++						self.tooltip = "Check this to auto watch a faction with rep gain. This will show the repbar above the experience bar";
++					</OnLoad>
++					<OnShow>
++						FB.OptionsPanel_CheckButton_OnLoad(self,"autoChangeWatched","Auto Watch a Faction");
++					</OnShow>
++					<PostClick>
++						FB.OptionsPanel_CheckButton_PostClick(self,"autoChangeWatched")
++					</PostClick>
++					<OnEnter>
++						GameTooltip:SetOwner(self, "ANCHOR_LEFT");
++						GameTooltip:SetText(self.tooltip);
++					</OnEnter>
++					<OnLeave>
++						GameTooltip:Hide();
++					</OnLeave>
++				</Scripts>
++			</CheckButton>
++
++			<CheckButton name="$parent_ShowStandingBox" inherits="OptionsCheckButtonTemplate">
++				<Anchors>
++					<Anchor point="TOPLEFT" relativeTo="$parent_AutoChangeWatchedBox" relativePoint="BOTTOMLEFT">
++						<Offset>
++							<AbsDimension x="0" y="-20"></AbsDimension>
++						</Offset>
++					</Anchor>
++				</Anchors>
++				<Scripts>
++					<OnLoad>
+ 						self.tooltip = "Show the current standing with the faction";
+ 					</OnLoad>
+ 					<OnShow>
+@@ -152,7 +180,7 @@
+ 				</Scripts>
+ 			</CheckButton>
+ 
+-			<CheckButton name="$parent_ShowBarTimeRemainingBox" inherits="OptionsCheckButtonTemplate">
++			<CheckButton name="$parent_ShowRepAgeBox" inherits="OptionsCheckButtonTemplate">
+ 				<Anchors>
+ 					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRepTillNextBox" relativePoint="BOTTOMLEFT">
+ 						<Offset>
+@@ -162,16 +190,16 @@
+ 				</Anchors>
+ 				<Scripts>
+ 					<OnShow>
+-			FB.OptionsPanel_CheckButton_OnLoad(self,"showBarTimeRemaining","Show For How Long The Bar Will Remain Visible");
++			FB.OptionsPanel_CheckButton_OnLoad(self,"showRepAge","Show Youngest Reputation Gain Age");
+ 					</OnShow>
+ 					<PostClick>
+-						FB.OptionsPanel_CheckButton_PostClick(self,"showBarTimeRemaining")
++						FB.OptionsPanel_CheckButton_PostClick(self,"showRepAge")
+ 					</PostClick>
+ 				</Scripts>
+ 			</CheckButton>
+ 			<CheckButton name="$parent_ShowTimeTillNextBox" inherits="OptionsCheckButtonTemplate">
+ 				<Anchors>
+-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowBarTimeRemainingBox" relativePoint="BOTTOMLEFT">
++					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRepAgeBox" relativePoint="BOTTOMLEFT">
+ 						<Offset>
+ 							<AbsDimension x="0" y="-10"></AbsDimension>
+ 						</Offset>
+Index: src/FactionBars.lua
+===================================================================
+--- src/FactionBars.lua	(revision 967)
++++ src/FactionBars.lua	(working copy)
+@@ -213,7 +213,7 @@
+ 		FB_repSaved[factionNameIn][now] = 
+ 				(FB_repSaved[factionNameIn][now] and FB_repSaved[factionNameIn][now] + repGainIn) -- entry exists
+ 				or repGainIn; -- entry does not exist
+-		if not isWatched then
++		if FB_options.autoChangeWatched and not isWatched then
+ 			SetWatchedFactionIndex(factionIndex);
+ 		end
+ 	end
+@@ -249,7 +249,9 @@
+ 		for ts, gain in pairs(history) do
+ 			maxTS = max(maxTS, ts);
+ 			allMaxTS = max(allMaxTS, maxTS);
+-			if ts ~= 0 then minTS = min(minTS, ts); end
++			if ts ~= 0 and (ts > (now - FB.timeFrames[FB_options.trackPeriod])) then 
++				minTS = min(minTS, ts); 
++			end
+ 			session = session + (ts > FB.sessionStart and gain or 0);
+ 			track = track + (ts > (now - FB.timeFrames[FB_options.trackPeriod]) and gain or 0);
+ 			if (ts > 0 and (ts < (now - FB.maxTrack))) then
+@@ -268,7 +270,7 @@
+ 				local rate = track / FB.timeFrames[FB_options.trackPeriod];
+ 				local timeTillNext = (barTopValue - barEarnedValue) / rate;
+ 				local reps = math.ceil((barTopValue - barEarnedValue) / history[maxTS]);
+-				--FB.Print(faction..":"..now-minTS..":"..FB.timeFrames[FB_options.trackPeriod]..":"..SecondsToTime(timeTillNext));
++		--FB.Print(faction..":"..now-minTS..":"..FB.timeFrames[FB_options.trackPeriod]..":"..SecondsToTime(timeTillNext));
+ 				FB.barData[faction] = {
+ 					["maxTS"] = maxTS,
+ 					["minTS"] = minTS,
+@@ -281,8 +283,8 @@
+ 						(FB_options.showLastGain and history[maxTS] or "")..
+ 						(FB_options.showRangeGain and (" ("..track..")") or "")..
+ 						(FB_options.showRepTillNext and (" -> "..(barTopValue - barEarnedValue)) or "")..
+-						(FB_options.showBarTimeRemaining and 
+-							(" ("..SecondsToTime((maxTS+FB.timeFrames[FB_options.trackPeriod])-now,false,false,1)..")") or "")..
++						(FB_options.showRepAge and 
++							(" ("..SecondsToTime(now-minTS,false,false,1)..")") or "")..
+ 						(FB_options.showTimeTillNext and
+ 							(" in "..SecondsToTime(timeTillNext)) or "")..
+ 						(FB_options.showRepsTillNext and

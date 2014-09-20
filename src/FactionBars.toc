@@ -1,0 +1,13 @@
+## Interface: 50400
+## Title: Faction Bars
+## Notes: Follow Progress on multible reputations
+## Author: sistersally of hyjal
+## Version: @VERSION@
+## Description: Shows progress bars for reputations
+## OptionalDeps: XH
+## SavedVariables: FB_options
+## SavedVariablesPerCharacter: FB_repSaved
+FactionBars.lua
+FactionBars.xml
+FactionBarsOptions.lua
+FactionBarsOptions.xml

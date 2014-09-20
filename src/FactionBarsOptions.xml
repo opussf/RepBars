@@ -1,0 +1,242 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\FrameXML\UI.xsd">
+	
+	<Frame name="FactionBarsOptionsFrame">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parent_Title" inherits="GameFontNormalLarge">
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset><AbsDimension x="16" y="-16"/></Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				
+			</Layer>
+		</Layers>
+		<Frames>
+			<Slider name="$parent_NumBars" inherits="OptionsSliderTemplate" minValue="1" maxValue="1" valueStep="1">
+				<Size x="220" y="16"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_Title" relativePoint="BOTTOMLEFT">
+						<Offset><AbsDimension x="16" y="-40"/></Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnValueChanged>
+						FB.OptionsPanel_NumBarSlider_OnValueChanged(self);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<Slider name="$parent_TrackPeriodSlider" inherits="OptionsSliderTemplate" minValue="1" maxValue="1" valueStep="1">
+				<Size x="220" y="16"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_NumBars" relativePoint="BOTTOMLEFT">
+						<Offset><AbsDimension x="0" y="-20"/></Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						FB.OptionsPanel_TrackPeriodSlider_OnLoad(self);
+					</OnLoad>
+					<OnValueChanged>
+						FB.OptionsPanel_TrackPeriodSlider_OnValueChanged(self);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<CheckButton name="$parent_AutoChangeWatchedBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_TrackPeriodSlider" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-20"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self.tooltip = "Check this to auto watch a faction with rep gain. This will show the repbar above the experience bar";
+					</OnLoad>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"autoChangeWatched","Auto Watch a Faction");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"autoChangeWatched")
+					</PostClick>
+					<OnEnter>
+						GameTooltip:SetOwner(self, "ANCHOR_LEFT");
+						GameTooltip:SetText(self.tooltip);
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+
+			<CheckButton name="$parent_ShowStandingBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_AutoChangeWatchedBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-20"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self.tooltip = "Show the current standing with the faction";
+					</OnLoad>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showStanding","Show Faction Standing");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showStanding")
+					</PostClick>
+					<OnEnter>
+						GameTooltip:SetOwner(self, "ANCHOR_LEFT");
+						GameTooltip:SetText(self.tooltip);
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_ShowPercentBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowStandingBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self.tooltip = "Show the progress percentage for the current standing";
+					</OnLoad>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showPercent","Show Faction Percent");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showPercent")
+					</PostClick>
+					<OnEnter>
+						GameTooltip:SetOwner(self, "ANCHOR_LEFT");
+						GameTooltip:SetText(self.tooltip);
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+					</OnLeave>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_ShowLastGainBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowPercentBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showLastGain","Show Last Reputation Gain");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showLastGain")
+					</PostClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_ShowRangeGainBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowLastGainBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showRangeGain","Show Reputation Gain During Range");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showRangeGain")
+					</PostClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_ShowRepTillNextBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRangeGainBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showRepTillNext","Show Reputation Needed Till Next Level");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showRepTillNext")
+					</PostClick>
+				</Scripts>
+			</CheckButton>
+
+			<CheckButton name="$parent_ShowRepAgeBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRepTillNextBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+			FB.OptionsPanel_CheckButton_OnLoad(self,"showRepAge","Show Youngest Reputation Gain Age");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showRepAge")
+					</PostClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_ShowTimeTillNextBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRepAgeBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showTimeTillNext","Show Time Until Next Level");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showTimeTillNext")
+					</PostClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parent_ShowRepsTillNextBox" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_ShowTimeTillNextBox" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="0" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						FB.OptionsPanel_CheckButton_OnLoad(self,"showRepsTillNext","Show Reps of last gain Until Next Level");
+					</OnShow>
+					<PostClick>
+						FB.OptionsPanel_CheckButton_PostClick(self,"showRepsTillNext")
+					</PostClick>
+				</Scripts>
+			</CheckButton>
+
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				FB.OptionsPanel_OnLoad(self)
+			</OnLoad>
+		</Scripts>
+	</Frame>
+</Ui>
