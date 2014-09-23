@@ -157,7 +157,7 @@ function FB.UpdateBars()
 		--FB.Print("Hiding: "..barsHide);
 		FB.bars[barsHide]:Hide();
 	end
-	
+
 end
 
 function FB.FactionGainEvent( frame, event, message, ...)
@@ -193,7 +193,7 @@ function FB.GetFactionInfo( factionNameIn )
 		local standingStr = _G["FACTION_STANDING_LABEL"..standingId..FB.genderString];
 		if name == factionNameIn then
 			--FB.Print(name..":"..bottomValue.."<"..earnedValue.."<"..topValue);
-			return name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith, 
+			return name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith,
 					canToggleAtWar, isHeader, isCollapsed, isWatched, factionIndex, FACTION_BAR_COLORS[standingId] ;
 		end
 	end
@@ -211,7 +211,7 @@ function FB.FactionGain( factionNameIn, repGainIn )
 		if (not FB_repSaved[factionNameIn]) then
 			FB_repSaved[factionNameIn] = {};
 		end
-		FB_repSaved[factionNameIn][now] = 
+		FB_repSaved[factionNameIn][now] =
 				(FB_repSaved[factionNameIn][now] and FB_repSaved[factionNameIn][now] + repGainIn) -- entry exists
 				or repGainIn; -- entry does not exist
 		if FB_options.autoChangeWatched and not isWatched then
@@ -227,15 +227,15 @@ end
 function FB.FormatToPattern(formatString)
 
 	local patternString = formatString;
-	
-	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1"); -- reordering specifiers (e.g. %2$s) stripped	
+
+	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1"); -- reordering specifiers (e.g. %2$s) stripped
 	patternString = string.gsub(patternString, "([%$%(%)%.%[%]%*%+%-%?%^])", "%%%1"); -- convert regex special characters
-	
+
 	patternString = string.gsub(patternString, "%%c", "(.)"); -- %c to (.)
 	patternString = string.gsub(patternString, "%%s", "(.+)"); -- %s to (.+)
 	patternString = string.gsub(patternString, "%%[du]", "(%%d+)"); -- %d to (%d+)
 	patternString = string.gsub(patternString, "%%([gf])", "(%%d+%%.*%%d*)"); -- %g or %f to (%d+%.*%d*)
-		
+
 	return patternString;
 end
 
@@ -250,8 +250,8 @@ function FB.GenerateBarData()
 		for ts, gain in pairs(history) do
 			maxTS = max(maxTS, ts);
 			allMaxTS = max(allMaxTS, maxTS);
-			if ts ~= 0 and (ts > (now - FB.timeFrames[FB_options.trackPeriod])) then 
-				minTS = min(minTS, ts); 
+			if ts ~= 0 and (ts > (now - FB.timeFrames[FB_options.trackPeriod])) then
+				minTS = min(minTS, ts);
 			end
 			session = session + (ts > FB.sessionStart and gain or 0);
 			track = track + (ts > (now - FB.timeFrames[FB_options.trackPeriod]) and gain or 0);
@@ -269,6 +269,7 @@ function FB.GenerateBarData()
 
 			if track ~= 0 then
 				local rate = track / FB.timeFrames[FB_options.trackPeriod];
+				local rate = track / 1800; -- hardcode to 30 minutes
 				local timeTillNext = (barTopValue - barEarnedValue) / rate;
 				local reps = math.ceil((barTopValue - barEarnedValue) / history[maxTS]);
 		--FB.Print(faction..":"..now-minTS..":"..FB.timeFrames[FB_options.trackPeriod]..":"..SecondsToTime(timeTillNext));
@@ -284,7 +285,7 @@ function FB.GenerateBarData()
 						(FB_options.showLastGain and history[maxTS] or "")..
 						(FB_options.showRangeGain and (" ("..track..")") or "")..
 						(FB_options.showRepTillNext and (" -> "..(barTopValue - barEarnedValue)) or "")..
-						(FB_options.showRepAge and 
+						(FB_options.showRepAge and
 							(" ("..SecondsToTime(now-maxTS,false,false,1)..")") or "")..
 						(FB_options.showTimeTillNext and
 							(" in "..SecondsToTime(timeTillNext)) or "")..
