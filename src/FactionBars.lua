@@ -246,7 +246,7 @@ end
 function FB.GenerateBarData()
 	local now,allMaxTS = time(),0;
 	for faction, history in pairs(FB_repSaved) do
-		local session, track, maxTS, minTS = 0,0,0,now;
+		local session, ratetrack, track, maxTS, minTS = 0, 0, 0, 0, now;
 		for ts, gain in pairs(history) do
 			maxTS = max(maxTS, ts);
 			allMaxTS = max(allMaxTS, maxTS);
@@ -254,7 +254,8 @@ function FB.GenerateBarData()
 				minTS = min(minTS, ts);
 			end
 			session = session + (ts > FB.sessionStart and gain or 0);
-			track = track + (ts > (now - FB.timeFrames[FB_options.trackPeriod]) and gain or 0);
+			track = track + (ts > (now - FB.timeFrames[FB_options.trackPeriod]) and gain or 0)
+			ratetrack = ratetrack + (ts > (now - 1800) and gain or 0)
 			if (ts > 0 and (ts < (now - FB.maxTrack))) then
 				history[0] =
 					(history[0] and history[0] + gain)
@@ -268,9 +269,10 @@ function FB.GenerateBarData()
 			if FB_options.trackPeriod == "session" then track=session; end
 
 			if track ~= 0 then
-				local rate = track / FB.timeFrames[FB_options.trackPeriod];
-				local rate = track / 1800; -- hardcode to 30 minutes
-				local timeTillNext = (barTopValue - barEarnedValue) / rate;
+				--local rate = track / FB.timeFrames[FB_options.trackPeriod];
+				local rate = ratetrack / 1800; -- hardcode to 30 minutes
+				local timeTillNext = (barTopValue - barEarnedValue) / ((rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod]))
+				-- calculate timeTillNext based on 30 minutes, or the range if no data in the last 30 min.
 				local reps = math.ceil((barTopValue - barEarnedValue) / history[maxTS]);
 		--FB.Print(faction..":"..now-minTS..":"..FB.timeFrames[FB_options.trackPeriod]..":"..SecondsToTime(timeTillNext));
 				FB.barData[faction] = {
@@ -283,7 +285,7 @@ function FB.GenerateBarData()
 						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
 						": "..
 						(FB_options.showLastGain and history[maxTS] or "")..
-						(FB_options.showRangeGain and (" ("..track..")") or "")..
+						(FB_options.showRangeGain and (" ("..track.."/"..ratetrack..")") or "")..
 						(FB_options.showRepTillNext and (" -> "..(barTopValue - barEarnedValue)) or "")..
 						(FB_options.showRepAge and
 							(" ("..SecondsToTime(now-maxTS,false,false,1)..")") or "")..
