@@ -17,12 +17,11 @@ require "FactionBarsOptions"
 
 function test.before()
 	FB.OnLoad()
-	FB.ADDON_LOADED()
+--	FB.ADDON_LOADED()
 end
 function test.after()
 end
 function test.testzzz()
-
 end
 
 test.run()
