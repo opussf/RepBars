@@ -285,7 +285,7 @@ function FB.GenerateBarData()
 						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
 						": "..
 						(FB_options.showLastGain and history[maxTS] or "")..
-						(FB_options.showRangeGain and (" ("..track.."/"..ratetrack..")") or "")..
+						(FB_options.showRangeGain and (" ("..track..")") or "")..
 						(FB_options.showRepTillNext and (" -> "..(barTopValue - barEarnedValue)) or "")..
 						(FB_options.showRepAge and
 							(" ("..SecondsToTime(now-maxTS,false,false,1)..")") or "")..
