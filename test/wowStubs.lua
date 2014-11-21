@@ -20,6 +20,8 @@ myCurrencies = {}
 -- roster should be an array for GetRaidRosterInfo
 myParty = { ["group"] = nil, ["raid"] = nil, ["roster"] = {} }
 outMail = {}
+inbox = {}
+onCursor = {}
 globals = {}
 accountExpansionLevel = 4   -- 0 to 5
 
@@ -47,11 +49,11 @@ MerchantInventory = {
 	{["id"] = 7073, ["name"] = "Broken Fang", ["cost"] = 5000, ["quantity"] = 1, ["isUsable"] = 1, ["link"] = "|cff9d9d9d|Hitem:7073:0:0:0:0:0:0:0:80:0:0|h[Broken Fang]|h|r"},
 	{["id"] = 6742, ["name"] = "UnBroken Fang", ["cost"] = 10000, ["quantity"] = 1, ["isUsable"] = 1, ["link"] = "|cff9d9d9d|Hitem:6742:0:0:0:0:0:0:0:80:0:0|h[UnBroken Fang]|h|r"},
 	{["id"] = 22261, ["name"] = "Love Fool", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1, ["link"] = "|cff9d9d9d|Hitem:22261:0:0:0:0:0:0:0:80:0:0|h[Love Fool]|h|r",
-		["currencies"] = {["id"] = 49927, ["quantity"] = 10},},
+		["currencies"] = {{["id"] = 49927, ["quantity"] = 10},}},
 	{["id"] = 49927, ["name"] = "Love Token", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1, ["link"] = "",
-		["currencies"] = {["id"] = 49916, ["quantity"] = 1},},  -- Lovely Charm Bracelet
+		["currencies"] = {{["id"] = 49916, ["quantity"] = 1},}},  -- Lovely Charm Bracelet
 	{["id"] = 74661, ["name"] = "Black Pepper", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1, ["link"] = "﻿|cffffffff|Hitem:74661:0:0:0:0:0:0:0:90:0:0|h[Black Pepper]|h|r",
-		["currencies"] = {["id"] = 402, ["quantity"] = 1},},
+		["currencies"] = {{["id"] = 402, ["quantity"] = 1},}},
 	{["id"] = 85216, ["name"] = "Enigma Seed", ["cost"] = 2500, ["quantity"] = 1, ["isUsable"] = nil, ["link"]= "|cffffffff|Hitem:85216:0:0:0:0:0:0:0:90:0:0|h[Enigma Seed]|h|r"},
 }
 TradeSkillItems = {
@@ -170,29 +172,53 @@ DEFAULT_CHAT_FRAME={ ["AddMessage"] = print, }
 UIErrorsFrame={ ["AddMessage"] = print, }
 
 -- stub some external API functions (try to keep alphabetical)
-function CombatTextSetActiveUnit( who ) end
 function BuyMerchantItem( index, quantity )
 	-- adds quantity of index to myInventory
 	-- no return value
-	local itemID = INEED.getItemIdFromLink( GetMerchantItemLink( index ) )
+	local itemID = MerchantInventory[index].id
 	if myInventory[itemID] then
 		myInventory[itemID] = myInventory[itemID] + quantity
 	else
 		myInventory[itemID] = quantity
 	end
-	INEED.UNIT_INVENTORY_CHANGED()
-
-	-- meh
+	--INEED.UNIT_INVENTORY_CHANGED()
 end
-function DoEmote( emote ) end
+function CheckInbox()
+	-- http://www.wowwiki.com/API_CheckInbox
+	-- Fires the MAIL_INBOX_UPDATE event when data is available
+	-- @TODO - Write this
+end
+function ClearSendMail()
+	-- http://www.wowwiki.com/API_ClearSendMail
+	-- clears any text, items or money from the mail message to be sent
+	-- @TODO - Write this
+end
+function ClickSendMailItemButton( slot, clearItem )
+	-- http://www.wowwiki.com/API_ClickSendMailItemButton
+	--
+	-- @TODO - Write this
+end
+function CloseMail()
+	-- http://www.wowwiki.com/API_CloseMail
+	-- Fires the MAIL_CLOSED event
+	-- returns: nil
+	-- @TODO - Write this
+end
+function CombatTextSetActiveUnit( who )
+	-- http://www.wowwiki.com/API_CombatTextSetActiveUnit
+	-- @TODO - Write this
+end
+function DoEmote( emote )
+	-- not tested as the only side effect is the character doing an emote
+end
 function GetAccountExpansionLevel()
 	-- http://www.wowwiki.com/API_GetAccountExpansionLevel
 	-- returns 0 to 4 (5)
 	return accountExpansionLevel
 end
 function GetAddOnMetadata(addon, field)
---	local addonData = { ["version"] = "1.0",
---	}
+	-- returns addonData[field] for 'addon'
+	-- local addonData = { ["version"] = "1.0", }
 	return addonData[field]
 end
 function GetCoinTextureString( copperIn, fontHeight )
@@ -203,9 +229,9 @@ function GetCoinTextureString( copperIn, fontHeight )
 		local gold = math.floor(copperIn / 10000); copperIn = copperIn - (gold * 10000)
 		local silver = math.floor(copperIn / 100); copperIn = copperIn - (silver * 100)
 		local copper = copperIn
-		return( (gold and gold.."G")..
-				(silver and ((gold and " " or "")..silver.."S"))..
-				(copper and ((silver and " " or "")..copper.."C")) )
+		return( (gold and gold.."G ")..
+				(silver and silver.."S ")..
+				(copper and copper.."C"))
 	end
 end
 function GetContainerNumFreeSlots( bagId )
@@ -241,11 +267,9 @@ function GetItemCount( itemID, includeBank )
 end
 function GetItemInfo( itemID )
 	-- returns name, itemLink
-	local itemData = {
-			["7073"] = { "Broken Fang", "|cff9d9d9d|Hitem:7073:0:0:0:0:0:0:0:80:0:0|h[Broken Fang]|h|r" },
-			["6742"] = { "UnBroken Fang", "|cff9d9d9d|Hitem:6742:0:0:0:0:0:0:0:80:0:0|h[UnBroken Fang]|h|r" },
-	}
-	if itemData[itemID] then return unpack( itemData[itemID] ) end
+	if Items[itemID] then
+		return Items[itemID].name, Items[itemID].link
+	end
 end
 function GetMerchantItemCostInfo( index )
 	-- returns count of alterate items needed to purchase an item
@@ -283,12 +307,6 @@ function GetMerchantItemInfo( index )
 		local item = MerchantInventory[ index ]
 		return item.name, "", item.cost, item.quantity, -1, item.isUsable
 	end
-	--[[
-	local merchantItemInfo = { { "Broken Fang", "", 5000, 1 },  -- 50 silver
-			{ "UnBroken Fang", "", 10000, 1 },            -- 1 gold
-	}
-	return unpack( merchantItemInfo[index] )
-	]]
 end
 function GetMerchantItemMaxStack( index )
 	-- Max allowable amount per purchase.  Hard code to 20 for now
@@ -326,13 +344,23 @@ function GetRaidRosterInfo( raidIndex )
 	if (myParty.raid or myParty.party) and myParty.roster then
 		return unpack(myParty.roster[raidIndex]) -- unpack returns the array as seperate values
 	end
-
 end
 function GetRealmName()
 	return "testRealm"
 end
+function GetSendMailItem( slot )
+	-- 1 <= slot <= ATTACHMENTS_MAX_SEND
+	-- returns: itemName, itemTexture, stackCount, quality
+end
 function GetSendMailItemLink( slot )
-	-- todo:  Write this
+	-- 1 <= slot <= ATTACHMENTS_MAX_SEND
+	-- returns: itemlink
+end
+function GetSendMailMoney()
+	-- returns: amount (in copper)
+end
+function GetSendMailPrice()
+	-- returns: amount (in copper) to send the mail
 end
 function GetTradeSkillItemLink( index )
 	if TradeSkillItems[index] then
@@ -350,6 +378,7 @@ function GetTradeSkillReagentInfo( skillIndex, reagentIndex )
 		end
 	end
 end
+--[[
 function GetTradeSkillReagentItemLink( skillIndex, reagentIndex )
 	-- link = GetTradeSkillReagentItemLink(skillId, reagentId)
 	-- skillId = TradeSkillIndex
@@ -369,6 +398,9 @@ function GetTradeSkillNumReagents( index )
 end
 function GetTradeSkillRecipeLink( index )
 	return TradeSkillItems[index].elink
+end
+function HasNewMail()
+	return true
 end
 function InterfaceOptionsFrame_OpenToCategory()
 end
@@ -392,14 +424,40 @@ function NumTaxiNodes()
 	end
 	return count
 end
-function PlaySoundFile( file ) end
-function SecondsToTime( seconds )
+function PlaySoundFile( file )
+	-- does nothing except play a sound.
+	-- do not test.
+end
+]]
+function SecondsToTime( secondsIn, noSeconds, notAbbreviated, maxCount )
+	-- http://www.wowwiki.com/API_SecondsToTime
 	-- formats seconds to a readable time
-	return ""
+	-- secondsIn: number of seconds to work with
+	-- noSeconds: True to ommit seconds display (optional - default: false)
+	-- notAbbreviated: True to use full unit text, short text otherwise (optional - default: false)
+	-- maxCount: Maximum number of terms to return (optional - default: 2)
+	maxCount = maxCount or 2
+	local days = nil
+	local outStr = ""
+	if secondsIn >= 86400 then
+		days = math.floor(secondsIn / 86400)
+		secondsIn = secondsIn - (days * 86400)
+	end
+	--print("days: "..(days or "nil"))
+	dayText = "Day"..(days and (days>1 and "s" or "") or "")
+	local seconds = secondsIn
+	secText = notAbbreviated and
+			"Second"..(seconds>1 and "s" or "") or
+			"Sec"
+	local outStr = days and string.format("%i %s", days, dayText)
+	outStr = outStr .. string.format("%i %s", seconds, secText)
+	return outStr
 end
 function SendChatMessage( msg, chatType, language, channel )
 	-- http://www.wowwiki.com/API_SendChatMessage
+	-- This could simulate sending text to the channel, in the language, and raise the correct event.
 	-- returns nil
+	-- @TODO: Expand this
 end
 function TaxiNodeCost( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeCost
