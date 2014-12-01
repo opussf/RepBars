@@ -28,7 +28,9 @@ Here are some ideas for how to better handle this slider.
 ###
 Each tick on the slider bar corresponds to "k" times longer than the previous one.
 
+```
 |---|---|---|---|---|---|---|---|---|
 1   2   5   10  20  50  100 200 500 1000
+```
 
 Hitting the right side limit doubles the value.
