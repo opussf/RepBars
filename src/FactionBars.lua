@@ -1,6 +1,6 @@
 FB_MSG_VERSION = GetAddOnMetadata("FactionBars","Version");
 FB_MSG_ADDONNAME	= "FactionBars";
-FB_MSG_AUTHOR 		= "CGordon";
+FB_MSG_AUTHOR 		= "Opussf";
 
 --[[
 FACTION_BAR_COLORS = {
@@ -318,7 +318,7 @@ function FB.PrintStatus()
 end
 
 function FB.PrintHelp()
-	FB.Print(RF_MSG_ADDONNAME.." by "..RF_MSG_AUTHOR);
+	FB.Print(FB_MSG_ADDONNAME.." by "..FB_MSG_AUTHOR);
 	for cmd, info in pairs(FB.CommandList) do
 		FB.Print(string.format("%s %s %s -> %s",
 			SLASH_FB1, cmd, info.help[1], info.help[2]));
