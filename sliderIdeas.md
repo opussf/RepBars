@@ -34,3 +34,10 @@ Each tick on the slider bar corresponds to "k" times longer than the previous on
 ```
 
 Hitting the right side limit doubles the value.
+
+k * b^n
+
+For current max n, b determines k to get the desired max value, try different b and see how the values change.
+Sweet spot would be to keep the values of interest towards the middle of the slider.
+
+Pushing on the left side would decrease the max.
