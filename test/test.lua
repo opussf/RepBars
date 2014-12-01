@@ -24,7 +24,8 @@ function test.before()
 end
 function test.after()
 end
-function test.testzzz()
+function test.test_Help()
+	FB.Command("help")
 end
 
 test.run()
