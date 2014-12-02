@@ -27,5 +27,8 @@ end
 function test.test_Help()
 	FB.Command("help")
 end
+function test.test_Rep()
+	FB.Command("rep")
+end
 
 test.run()

@@ -236,7 +236,7 @@ function FB.FormatToPattern(formatString)
 
 	return patternString;
 end
-
+]]
 -- Output
 -- processed data into FB.barData
 -- makes sure it is sorted
@@ -302,14 +302,12 @@ function FB.GenerateBarData()
 		end
 	end
 end
-
 function FB.PrintStatus()
 	FB.GenerateBarData();
 	for _, val in pairs(FB.barData) do
 		FB.Print(val["outStr"]);
 	end
 end
-]]
 function FB.PrintHelp()
 	FB.Print(FB_MSG_ADDONNAME.." by "..FB_MSG_AUTHOR);
 	for cmd, info in pairs(FB.CommandList) do
