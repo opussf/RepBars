@@ -79,7 +79,6 @@ function FB.ADDON_LOADED()
 	FB.Print("Loaded version: "..FB_MSG_VERSION)
 	FB_Frame:Show();  -- Do this just in case it has bars to show.  It will hide itself if it does not.
 end
---[[
 function FB.OnUpdate(arg1)
 	local now = time();
 	if FB.lastUpdate + FB.updateInterval <= now then
@@ -89,7 +88,7 @@ function FB.OnUpdate(arg1)
 		FB.lastUpdate = now;
 	end
 end
-
+--[[
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
 	local count = 0;
@@ -119,7 +118,7 @@ function FB.AssureBars( barsNeeded )
 	end
 	return max(count, barsNeeded);
 end
-
+]]
 function FB.UpdateBars()
 	-- Create a sorted index table of data from barData, count the table too
 	local count = 0;
@@ -157,7 +156,7 @@ function FB.UpdateBars()
 	end
 
 end
-
+--[[
 function FB.FactionGainEvent( frame, event, message, ...)
 	--FB.Print( event..":"..message )
 	if (not FB.FACTION_STANDING_DECREASED_PATTERN) then
