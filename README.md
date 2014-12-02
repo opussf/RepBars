@@ -41,8 +41,9 @@ With all the options turned on, your display will look like:
 ```
 
 ## TODOs
-* Configuration option for width
-* Option to hide in combat (to free up the screen)
-* Option to auto scale time frame to show last known faction change
+[ ] #1 Allow moving frame, with locking and unlocking
+[ ] #2 Option to hide in combat (to free up the screen)
+[ ] #3 Configuration option for width
+[ ] Option to auto scale time frame to show last known faction change
 
 
