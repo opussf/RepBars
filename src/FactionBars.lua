@@ -56,7 +56,6 @@ function FB.Print( msg, showName)
 	end
 	DEFAULT_CHAT_FRAME:AddMessage( msg );
 end
-
 function FB.OnLoad()
 	SLASH_FB1 = "/fb";
 	SlashCmdList["FB"] = function(msg) FB.Command(msg); end
@@ -65,7 +64,6 @@ function FB.OnLoad()
 	FB.sessionStart = time();
 	FB_Frame:RegisterEvent("ADDON_LOADED");
 end
-
 function FB.ADDON_LOADED()
 	local genderStrings = {"","","_FEMALE"};
 	FB.genderString = genderStrings[(UnitSex("player") or 0)];
@@ -81,7 +79,7 @@ function FB.ADDON_LOADED()
 	FB.Print("Loaded version: "..FB_MSG_VERSION)
 	FB_Frame:Show();  -- Do this just in case it has bars to show.  It will hide itself if it does not.
 end
-
+--[[
 function FB.OnUpdate(arg1)
 	local now = time();
 	if FB.lastUpdate + FB.updateInterval <= now then
@@ -303,11 +301,6 @@ function FB.GenerateBarData()
 			end
 		end
 	end
---[[
-	if FB_options.flexibleTimeWindow then
-		FB.Print(allMaxTS..":"..now-FB.timeFrames[FB_options.trackPeriod]);
-	end
-	]]--
 end
 
 function FB.PrintStatus()
@@ -355,4 +348,4 @@ function FB.Command(msg)
 		InterfaceOptionsFrame_OpenToCategory(FB_MSG_ADDONNAME);
 	end
 end
-
+]]
