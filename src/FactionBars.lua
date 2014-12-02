@@ -309,7 +309,7 @@ function FB.PrintStatus()
 		FB.Print(val["outStr"]);
 	end
 end
-
+]]
 function FB.PrintHelp()
 	FB.Print(FB_MSG_ADDONNAME.." by "..FB_MSG_AUTHOR);
 	for cmd, info in pairs(FB.CommandList) do
@@ -348,4 +348,3 @@ function FB.Command(msg)
 		InterfaceOptionsFrame_OpenToCategory(FB_MSG_ADDONNAME);
 	end
 end
-]]
