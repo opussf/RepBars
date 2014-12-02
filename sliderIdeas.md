@@ -36,9 +36,12 @@ While it is true that someone with some know-how could edit the code to better d
 ## Proposals
 Here are some ideas for how to better handle this slider.
 
-###
+### From @dwflorek
+Sounds like a roughly exponential function would be useful.
+
 Each tick on the slider bar corresponds to "k" times longer than the previous one.
 
+A rough one for doubling is 1, 2, 5, 10, 20, 50, 100, 200, 500. ...
 ```
 |---|---|---|---|---|---|---|---|---|
 1   2   5   10  20  50  100 200 500 1000
@@ -49,6 +52,8 @@ Hitting the right side limit doubles the value.
 k * b^n
 
 For current max n, b determines k to get the desired max value, try different b and see how the values change.
-Sweet spot would be to keep the values of interest towards the middle of the slider.
+For 'bad' choices, the values of interest will feel too close together at one end or the other ...
+Sweet spot will be in the middle.
 
 Pushing on the left side would decrease the max.
+
