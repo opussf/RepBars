@@ -1,6 +1,6 @@
-## Interface: 50400
+## Interface: @INTERFACE@
 ## Title: Faction Bars
-## Notes: Follow Progress on multible reputations
+## Notes: Follow Progress on multible reputations @VERSION@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
 ## Description: Shows progress bars for reputations

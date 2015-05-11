@@ -1,6 +1,6 @@
 FB_MSG_VERSION = GetAddOnMetadata("FactionBars","Version");
 FB_MSG_ADDONNAME	= "FactionBars";
-FB_MSG_AUTHOR 		= "CGordon";
+FB_MSG_AUTHOR 		= "Opussf";
 
 --[[
 FACTION_BAR_COLORS = {
@@ -56,7 +56,6 @@ function FB.Print( msg, showName)
 	end
 	DEFAULT_CHAT_FRAME:AddMessage( msg );
 end
-
 function FB.OnLoad()
 	SLASH_FB1 = "/fb";
 	SlashCmdList["FB"] = function(msg) FB.Command(msg); end
@@ -65,7 +64,6 @@ function FB.OnLoad()
 	FB.sessionStart = time();
 	FB_Frame:RegisterEvent("ADDON_LOADED");
 end
-
 function FB.ADDON_LOADED()
 	local genderStrings = {"","","_FEMALE"};
 	FB.genderString = genderStrings[(UnitSex("player") or 0)];
@@ -81,7 +79,6 @@ function FB.ADDON_LOADED()
 	FB.Print("Loaded version: "..FB_MSG_VERSION)
 	FB_Frame:Show();  -- Do this just in case it has bars to show.  It will hide itself if it does not.
 end
-
 function FB.OnUpdate(arg1)
 	local now = time();
 	if FB.lastUpdate + FB.updateInterval <= now then
@@ -91,7 +88,7 @@ function FB.OnUpdate(arg1)
 		FB.lastUpdate = now;
 	end
 end
-
+--[[
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
 	local count = 0;
@@ -121,7 +118,7 @@ function FB.AssureBars( barsNeeded )
 	end
 	return max(count, barsNeeded);
 end
-
+]]
 function FB.UpdateBars()
 	-- Create a sorted index table of data from barData, count the table too
 	local count = 0;
@@ -159,7 +156,7 @@ function FB.UpdateBars()
 	end
 
 end
-
+--[[
 function FB.FactionGainEvent( frame, event, message, ...)
 	--FB.Print( event..":"..message )
 	if (not FB.FACTION_STANDING_DECREASED_PATTERN) then
@@ -238,7 +235,7 @@ function FB.FormatToPattern(formatString)
 
 	return patternString;
 end
-
+]]
 -- Output
 -- processed data into FB.barData
 -- makes sure it is sorted
@@ -303,22 +300,15 @@ function FB.GenerateBarData()
 			end
 		end
 	end
---[[
-	if FB_options.flexibleTimeWindow then
-		FB.Print(allMaxTS..":"..now-FB.timeFrames[FB_options.trackPeriod]);
-	end
-	]]--
 end
-
 function FB.PrintStatus()
 	FB.GenerateBarData();
 	for _, val in pairs(FB.barData) do
 		FB.Print(val["outStr"]);
 	end
 end
-
 function FB.PrintHelp()
-	FB.Print(RF_MSG_ADDONNAME.." by "..RF_MSG_AUTHOR);
+	FB.Print(FB_MSG_ADDONNAME.." by "..FB_MSG_AUTHOR);
 	for cmd, info in pairs(FB.CommandList) do
 		FB.Print(string.format("%s %s %s -> %s",
 			SLASH_FB1, cmd, info.help[1], info.help[2]));
@@ -355,4 +345,3 @@ function FB.Command(msg)
 		InterfaceOptionsFrame_OpenToCategory(FB_MSG_ADDONNAME);
 	end
 end
-
