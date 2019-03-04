@@ -97,10 +97,10 @@ function FB.AssureBars( barsNeeded )
 	local count = #FB.bars
 	-- FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.");
 	if ( not InCombatLockdown() and ( barsNeeded > count ) ) then
-		FB.Print( "I need to make "..(barsNeeded-count).." bars." )
+		--FB.Print( "I need to make "..(barsNeeded-count).." bars." )
 		for i = count+1, barsNeeded do
 			-- Create a bar
-			FB.Print("Creating bar# "..i);
+			--FB.Print("Creating bar# "..i);
 			local newBar = CreateFrame("StatusBar", "FB_Bar"..i, FB_Frame, "FB_FactionBarTemplate");
 			newBar:SetWidth(FB.barWidth);
 			newBar:SetHeight(FB.barHeight);
