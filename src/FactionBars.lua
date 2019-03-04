@@ -94,12 +94,10 @@ end
 
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
-	local count = 0;
-	for b in pairs(FB.bars) do
-		count = count + 1;
-	end
-	--FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.");
-	if (barsNeeded ~= count ) then
+	local count = #FB.bars
+	-- FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.");
+	if ( not InCombatLockdown() and ( barsNeeded > count ) ) then
+		--FB.Print( "I need to make "..(barsNeeded-count).." bars." )
 		for i = count+1, barsNeeded do
 			-- Create a bar
 			--FB.Print("Creating bar# "..i);
@@ -123,41 +121,42 @@ function FB.AssureBars( barsNeeded )
 end
 
 function FB.UpdateBars()
-	-- Create a sorted index table of data from barData, count the table too
-	local count = 0;
-	local sortedKeys = {};
-	for fac, val in pairs(FB.barData) do
-		table.insert(sortedKeys, {["fac"]=fac, ["maxTS"]=val.maxTS});
-		count = count + 1;
-	end
-	if (count == 0) then
-		FB_Frame:Hide();
-		--FB.Print("Hide Frame");
-		return;
-	end
-	local barCount = FB.AssureBars( count );
-	-- the key to sort on is the maxTS
-	table.sort(sortedKeys, function(a,b) return (a.maxTS>b.maxTS or (a.maxTS==b.maxTS and a.fac<b.fac)); end);
-	local showBars = min(#sortedKeys, FB_options.numBars);
-	FB_Frame:SetHeight(FB.barHeight*showBars);
+	if not InCombatLockdown() then
+		-- Create a sorted index table of data from barData, count the table too
+		local count = 0;
+		local sortedKeys = {};
+		for fac, val in pairs(FB.barData) do
+			table.insert(sortedKeys, {["fac"]=fac, ["maxTS"]=val.maxTS});
+			count = count + 1;
+		end
+		if (count == 0) then
+			FB_Frame:Hide();
+			--FB.Print("Hide Frame");
+			return;
+		end
+		local barCount = FB.AssureBars( count );
+		-- the key to sort on is the maxTS
+		table.sort(sortedKeys, function(a,b) return (a.maxTS>b.maxTS or (a.maxTS==b.maxTS and a.fac<b.fac)); end);
+		local showBars = min(#sortedKeys, FB_options.numBars);
+		FB_Frame:SetHeight(FB.barHeight*showBars);
 
-	for i = 1, showBars do
-		local fac = sortedKeys[i].fac;
+		for i = 1, showBars do
+			local fac = sortedKeys[i].fac;
 
-		local val = FB.barData[fac];
-		FB.bars[i]:SetMinMaxValues(0, val["barTopValue"]);
-		FB.bars[i]:SetValue(val["barEarnedValue"]);
-		FB.bars[i].text:SetText(val["outStr"]);
-		FB.bars[i]:SetStatusBarColor(val["barColor"]["r"],
-				val["barColor"]["g"], val["barColor"]["b"]);
-		FB.bars[i]:SetFrameStrata("LOW");
-		FB.bars[i]:Show();
+			local val = FB.barData[fac];
+			FB.bars[i]:SetMinMaxValues(0, val["barTopValue"]);
+			FB.bars[i]:SetValue(val["barEarnedValue"]);
+			FB.bars[i].text:SetText(val["outStr"]);
+			FB.bars[i]:SetStatusBarColor(val["barColor"]["r"],
+					val["barColor"]["g"], val["barColor"]["b"]);
+			FB.bars[i]:SetFrameStrata("LOW");
+			FB.bars[i]:Show();
+		end
+		for barsHide = showBars+1, barCount do
+			--FB.Print("Hiding: "..barsHide);
+			FB.bars[barsHide]:Hide();
+		end
 	end
-	for barsHide = showBars+1, barCount do
-		--FB.Print("Hiding: "..barsHide);
-		FB.bars[barsHide]:Hide();
-	end
-
 end
 
 function FB.FactionGainEvent( frame, event, message, ...)
@@ -182,14 +181,17 @@ end
 function FB.GetFactionInfo( factionNameIn )
 	for factionIndex = 1, GetNumFactions() do
 		local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
-				canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild = GetFactionInfo(factionIndex);
+				canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex);
 		if isCollapsed then
 			ExpandFactionHeader(factionIndex);
 			return nil;
 		end
+		if standingId == 8 and C_Reputation.IsFactionParagon( factionID ) then  -- exalted and Paragon faction
+			curVal, threshold, _, hasPending = C_Reputation.GetFactionParagonInfo( factionID )
+		end
 		local barBottomValue = 0;
-		local barTopValue = topValue - bottomValue;
-		local barEarnedValue = earnedValue - bottomValue;
+		local barTopValue = threshold or (topValue - bottomValue);
+		local barEarnedValue = curVal and mod( curVal, threshold ) or (earnedValue - bottomValue);
 		local standingStr = _G["FACTION_STANDING_LABEL"..standingId..FB.genderString];
 		if name == factionNameIn then
 			--FB.Print(name..":"..bottomValue.."<"..earnedValue.."<"..topValue);
@@ -219,7 +221,9 @@ function FB.FactionGain( factionNameIn, repGainIn )
 		end
 	end
 	FB.lastUpdate=0; -- force update
-	FB_Frame:Show();
+	if not InCombatLockdown() then
+		FB_Frame:Show();
+	end
 end
 
 -- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
