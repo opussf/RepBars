@@ -1,7 +1,6 @@
 .svn
 .idea
+*.sublime*
 .DS_Store
 
 target/
-
-*.sublime*
