@@ -31,10 +31,10 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 				self:Hide();
 			</OnLoad>
 			<OnUpdate>
-				FB.OnUpdate(arg1);
+				FB.OnUpdate( arg1 );
 			</OnUpdate>
 			<OnEvent>
-				FB[event](self, ...)
+				FB[event](self, ...);
 			</OnEvent>
 		</Scripts>
 	</Frame>

@@ -1,29 +1,13 @@
-FB_MSG_VERSION = GetAddOnMetadata("FactionBars","Version");
-FB_MSG_ADDONNAME	= "FactionBars";
-FB_MSG_AUTHOR 		= "CGordon";
+FB_MSG_VERSION   = GetAddOnMetadata("FactionBars","Version")
+FB_MSG_ADDONNAME = "FactionBars"
+FB_MSG_AUTHOR    = "opussf"
 
---[[
-FACTION_BAR_COLORS = {
-	[1] = {r = 1.0, g = 0, b = 0},                  -- 36000 Hated - Red
-	[2] = {r = 1.0, g = 0.5019608, b = 0},          -- 3000 Hostile - Orange
-	[3] = {r = 1.0, g = 0.8196079, b = 0},          -- 3000 Unfriendly - Yellow
-	[4] = {r = 0.8, g = 0.9, b = 0.8},              -- 3000 Neutral - Grey
-	[5] = {r = 1.0, g = 1.0, b = 1.0},              -- 6000 Friendly - White
-	[6] = {r = 0, g = 0.6, b = 0.1},                -- 12000 Honored - Green
-	[7] = {r = 0, g = 0, b = 1.0},                  -- 21000 Revered - Blue
-	[8] = {r = 0.5803922, g = 0, b = 0.827451},     -- 1000 Exalted - Purple
-};
-]]--
+FB_repSaved = {}
 
-FACTION_BAR_COLORS[7] = {r = 0, g = 0, b = 1.0};                -- 21000 Revered - Blue
-FACTION_BAR_COLORS[8] = {r = 0.5803922, g = 0, b = 0.827451};   -- 1000 Exalted - Purple
-
-FB_repSaved = {};
-
-FB = {};
-FB.barData = {};
-FB.lastUpdate = 0;
-FB.updateInterval = 5;
+FB = {}
+FB.barData = {}
+FB.lastUpdate = 0
+FB.updateInterval = 5 -- update every 5 seconds
 
 FB.timeFrames = {
 	["session"]  =       0,
@@ -42,56 +26,58 @@ FB.timeFrames = {
 	["1 month"]  = 2419200,
 	["3 months"] = 7257600,
 }
-FB.maxTrack = 0;
+FB.maxTrack = 0
 
-FB.bars = {};
-FB.barHeight = 12;
-FB.barWidth = 390;
+FB.bars = {} -- holds the bars
+FB.barHeight = 12
+FB.barWidth = 390
 
-function FB.Print( msg, showName)
+function FB.Print( msg, showName )
 	-- print to the chat frame
 	-- set showName to false to suppress the addon name printing
 	if (showName == nil) or (showName) then
-		msg = FB_MSG_ADDONNAME.."> "..msg;
+		msg = FB_MSG_ADDONNAME.."> "..msg
 	end
-	DEFAULT_CHAT_FRAME:AddMessage( msg );
+	DEFAULT_CHAT_FRAME:AddMessage( msg )
 end
-
 function FB.OnLoad()
-	SLASH_FB1 = "/fb";
+	SLASH_FB1 = "/fb"
 	SlashCmdList["FB"] = function(msg) FB.Command(msg); end
 
-	ChatFrame_AddMessageEventFilter("CHAT_MSG_COMBAT_FACTION_CHANGE", FB.FactionGainEvent);
-	FB.sessionStart = time();
-	FB_Frame:RegisterEvent("ADDON_LOADED");
+	ChatFrame_AddMessageEventFilter( "CHAT_MSG_COMBAT_FACTION_CHANGE", FB.FactionGainEvent )
+	FB.sessionStart = time()
+	FB_Frame:RegisterEvent( "ADDON_LOADED" )
+	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
 end
-
-function FB.ADDON_LOADED()
-	local genderStrings = {"","","_FEMALE"};
-	FB.genderString = genderStrings[(UnitSex("player") or 0)];
-	FB_Frame:UnregisterEvent("ADDON_LOADED");
-	if XHFrame then
-		FB.Print("Found XH.  Setting my location relative to the skillBar");
-		FB_Frame:SetPoint("TOP", "XH_SkillBar", "BOTTOM",0, -1);
-	end
-	for _,ts in pairs(FB.timeFrames) do
-		FB.maxTrack = max( FB.maxTrack, ts );
-	end
-	FB.OptionsPanel_Reset();
-	FB.Print("Loaded version: "..FB_MSG_VERSION)
-	FB_Frame:Show();  -- Do this just in case it has bars to show.  It will hide itself if it does not.
-end
-
-function FB.OnUpdate(arg1)
-	local now = time();
+function FB.OnUpdate( arg1 )
+	local now = time()
 	if FB.lastUpdate + FB.updateInterval <= now then
-		FB.GenerateBarData();
-		FB.UpdateBars();
+		FB.GenerateBarData()
+		FB.UpdateBars()
 		--FB.Print("arg1: "..(arg1 or "nil").."::"..now.." tracking "..count.." factions. "..FB_Frame:GetHeight());
-		FB.lastUpdate = now;
+		FB.lastUpdate = now
 	end
 end
-
+-- Events
+function FB.ADDON_LOADED()
+	local genderStrings = {"","","_FEMALE"}
+	FB.genderString = genderStrings[( UnitSex( "player" ) or 0 )]
+	FB_Frame:UnregisterEvent( "ADDON_LOADED" )
+	if XHFrame then
+		FB.Print( "Found XH. Setting my location relative to the skillBar" )
+		FB_Frame:SetPoint( "TOP", "XH_SkillBar", "BOTTOM",0, -1 )
+	end
+	for _,ts in pairs( FB.timeFrames ) do
+		FB.maxTrack = max( FB.maxTrack, ts )
+	end
+	FB.Print( "Loaded version: "..FB_MSG_VERSION )
+	FB_Frame:Show()  -- Do this just in case it has bars to show.  It will hide itself if it does not.
+end
+function FB.VARIABLES_LOADED()
+	FB_Frame:UnregisterEvent( "VARIABLES_LOADED" )
+	FB.AssureBars( FB_options.numBars )
+	FB.OptionsPanel_Reset()
+end
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
 	local count = #FB.bars
@@ -100,69 +86,70 @@ function FB.AssureBars( barsNeeded )
 		--FB.Print( "I need to make "..(barsNeeded-count).." bars." )
 		for i = count+1, barsNeeded do
 			-- Create a bar
-			--FB.Print("Creating bar# "..i);
-			local newBar = CreateFrame("StatusBar", "FB_Bar"..i, FB_Frame, "FB_FactionBarTemplate");
-			newBar:SetWidth(FB.barWidth);
-			newBar:SetHeight(FB.barHeight);
+			FB.Print("Creating bar# "..i);
+			local newBar = CreateFrame( "StatusBar", "FB_Bar"..i, FB_Frame, "FB_FactionBarTemplate" )
+			newBar:SetWidth( FB.barWidth )
+			newBar:SetHeight( FB.barHeight )
+			newBar:SetFrameStrata( "LOW" )
+			newBar:Hide()
 			--newBar:SetTexture("Interface\TargetingFrame\UI-StatusBar");
 			if (i == 1) then
-				newBar:SetPoint("TOPLEFT","FB_Frame","TOPLEFT");
+				newBar:SetPoint( "TOPLEFT", "FB_Frame", "TOPLEFT" )
 			else
-				newBar:SetPoint("TOPLEFT",FB.bars[i-1], "BOTTOMLEFT");
+				newBar:SetPoint( "TOPLEFT", FB.bars[i-1], "BOTTOMLEFT" )
 			end
-			local text = newBar:CreateFontString("FB_BarText"..i, "OVERLAY", "FB_FactionBarTextTemplate");
+			local text = newBar:CreateFontString( "FB_BarText"..i, "OVERLAY", "FB_FactionBarTextTemplate" )
 			newBar.text = text;
-			text:SetPoint("TOPLEFT", newBar, "TOPLEFT", 5, 0);
+			text:SetPoint( "TOPLEFT", newBar, "TOPLEFT", 5, 0 )
 
-			FB.bars[i] = newBar;
+			FB.bars[i] = newBar
 		end
 	end
-	return max(count, barsNeeded);
+	return max( count, barsNeeded )
 end
-
 function FB.UpdateBars()
 	if not InCombatLockdown() then
 		-- Create a sorted index table of data from barData, count the table too
-		local count = 0;
-		local sortedKeys = {};
-		for fac, val in pairs(FB.barData) do
-			table.insert(sortedKeys, {["fac"]=fac, ["maxTS"]=val.maxTS});
-			count = count + 1;
+		local count = 0
+		local sortedKeys = {}
+		for fac, val in pairs( FB.barData ) do
+			count = count + 1
+			sortedKeys[count] = {["fac"]=fac, ["maxTS"]=val.maxTS}
 		end
-		if (count == 0) then
-			FB_Frame:Hide();
-			--FB.Print("Hide Frame");
-			return;
+		if( count == 0 ) then
+			FB_Frame:Hide()
+			FB.Print( "Hide Frame" )
+			return
 		end
-		local barCount = FB.AssureBars( count );
+		local barCount = FB.AssureBars( count )
 		-- the key to sort on is the maxTS
-		table.sort(sortedKeys, function(a,b) return (a.maxTS>b.maxTS or (a.maxTS==b.maxTS and a.fac<b.fac)); end);
-		local showBars = min(#sortedKeys, FB_options.numBars);
-		FB_Frame:SetHeight(FB.barHeight*showBars);
+		table.sort( sortedKeys, function(a,b) return (a.maxTS>b.maxTS or (a.maxTS==b.maxTS and a.fac<b.fac)); end )
+		local showBars = min( #sortedKeys, FB_options.numBars )
+		FB_Frame:SetHeight( FB.barHeight*showBars )
 
 		for i = 1, showBars do
-			local fac = sortedKeys[i].fac;
+			local fac = sortedKeys[i].fac
 
-			local val = FB.barData[fac];
-			FB.bars[i]:SetMinMaxValues(0, val["barTopValue"]);
-			FB.bars[i]:SetValue(val["barEarnedValue"]);
-			FB.bars[i].text:SetText(val["outStr"]);
-			FB.bars[i]:SetStatusBarColor(val["barColor"]["r"],
-					val["barColor"]["g"], val["barColor"]["b"]);
-			FB.bars[i]:SetFrameStrata("LOW");
-			FB.bars[i]:Show();
+			local val = FB.barData[fac]
+			FB.bars[i]:SetMinMaxValues( 0, val["barTopValue"] )
+			FB.bars[i]:SetValue( val["barEarnedValue"] )
+			FB.bars[i].text:SetText( val["outStr"] )
+			FB.bars[i]:SetStatusBarColor( val["barColor"]["r"],
+					val["barColor"]["g"], val["barColor"]["b"] )
+			FB.bars[i]:Show()
 		end
 		for barsHide = showBars+1, barCount do
-			--FB.Print("Hiding: "..barsHide);
-			FB.bars[barsHide]:Hide();
+			if FB.bars[barsHide]:IsShown() then
+				FB.Print( "Hiding: "..barsHide )
+				FB.bars[barsHide]:Hide()
+			end
 		end
 	end
 end
-
 function FB.FactionGainEvent( frame, event, message, ...)
 	--FB.Print( event..":"..message )
-	if (not FB.FACTION_STANDING_DECREASED_PATTERN) then
-		FB.FACTION_STANDING_DECREASED_PATTERN = FB.FormatToPattern(FACTION_STANDING_DECREASED);
+	if( not FB.FACTION_STANDING_DECREASED_PATTERN ) then
+		FB.FACTION_STANDING_DECREASED_PATTERN = FB.FormatToPattern(FACTION_STANDING_DECREASED)
 	end
 	local _, _, factionName, amount = string.find(message, FB.FACTION_STANDING_DECREASED_PATTERN);
 	if (factionName) then
@@ -177,6 +164,7 @@ function FB.FactionGainEvent( frame, event, message, ...)
 	factionName = (factionName == "Guild" and GetGuildInfo("player") or factionName);
 	FB.FactionGain( factionName, amount );
 end
+-------------
 -- return a list of faction info
 function FB.GetFactionInfo( factionNameIn )
 	for factionIndex = 1, GetNumFactions() do
@@ -188,6 +176,8 @@ function FB.GetFactionInfo( factionNameIn )
 		end
 		if standingId == 8 and C_Reputation.IsFactionParagon( factionID ) then  -- exalted and Paragon faction
 			curVal, threshold, _, hasPending = C_Reputation.GetFactionParagonInfo( factionID )
+		else
+			curVal, threshold, hasPending = nil, nil, nil
 		end
 		local barBottomValue = 0;
 		local barTopValue = threshold or (topValue - bottomValue);
@@ -307,6 +297,7 @@ function FB.GenerateBarData()
 			end
 		end
 	end
+
 --[[
 	if FB_options.flexibleTimeWindow then
 		FB.Print(allMaxTS..":"..now-FB.timeFrames[FB_options.trackPeriod]);
@@ -359,4 +350,3 @@ function FB.Command(msg)
 		InterfaceOptionsFrame_OpenToCategory(FB_MSG_ADDONNAME);
 	end
 end
-

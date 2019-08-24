@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-addonData = { ["version"] = "1.0",
+addonData = { ["Version"] = "1.0",
 }
 
 require "wowTest"
@@ -16,15 +16,13 @@ package.path = "../src/?.lua;'" .. package.path
 require "FactionBars"
 require "FactionBarsOptions"
 
-
-
 function test.before()
 	FB.OnLoad()
---	FB.ADDON_LOADED()
+	FB.ADDON_LOADED()
 end
 function test.after()
 end
-function test.testzzz()
+function test.test_()
 end
 
 test.run()

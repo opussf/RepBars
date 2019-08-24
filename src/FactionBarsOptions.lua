@@ -1,3 +1,9 @@
+FB.defaultOptions = {
+	["trackPeriod"] = "1 hour",
+	["numBars"] = 5,
+	["showStanding"] = true,
+}
+
 FB_options = {
 	["trackPeriod"] = "1 hour",
 	["numBars"] = 5,
