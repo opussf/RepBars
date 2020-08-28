@@ -1,8 +1,5 @@
 #!/usr/bin/env lua
 
-addonData = { ["Version"] = "1.0",
-}
-
 require "wowTest"
 
 test.outFileName = "testOut.xml"
@@ -12,9 +9,7 @@ FactionBarsOptionsFrame = CreateFrame()
 FactionBarsOptionsFrame_NumBars = CreateSlider("FactionBarsOptionsFrame_NumBars")
 
 -- require the file to test
-package.path = "../src/?.lua;'" .. package.path
-require "FactionBars"
-require "FactionBarsOptions"
+ParseTOC( "../src/FactionBars.toc" )
 
 function test.before()
 	FB.OnLoad()
