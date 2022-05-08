@@ -1,5 +1,5 @@
+## Title: Faction Bars v@VERSION@
 ## Interface: @INTERFACE@
-## Title: Faction Bars
 ## Notes: Follow Progress on multible reputations @VERSION@
 ## Author: sistersally of hyjal
 ## Version: @VERSION@
