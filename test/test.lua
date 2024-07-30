@@ -13,7 +13,6 @@ ParseTOC( "../src/FactionBars.toc" )
 
 function test.before()
 	FB.OnLoad()
-	FB.ADDON_LOADED()
 end
 function test.after()
 end

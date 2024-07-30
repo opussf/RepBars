@@ -6,7 +6,7 @@
 ## Description: Shows progress bars for reputations
 ## OptionalDeps: XH
 ## SavedVariables: FB_options
-## SavedVariablesPerCharacter: FB_repSaved FB_factionmap
+## SavedVariablesPerCharacter: FB_repSaved FB_factionmap FB_barData
 FactionBars.lua
 FactionBars.xml
 ## FactionBarsOptions.lua

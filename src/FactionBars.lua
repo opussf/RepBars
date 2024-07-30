@@ -32,6 +32,13 @@ FB.bars = {} -- holds the bars
 FB.barHeight = 12
 FB.barWidth = 390
 FB_factionmap = {}
+FB_barData = {}
+FB.patterns = {
+	["FACTION_STANDING_DECREASED"] = -1,
+	["FACTION_STANDING_INCREASED"] = 1,
+	["FACTION_STANDING_DECREASED_ACCOUNT_WIDE"] = -1,
+	["FACTION_STANDING_INCREASED_ACCOUNT_WIDE"] = 1
+}
 
 function FB.Print( msg, showName )
 	-- print to the chat frame
@@ -47,11 +54,10 @@ function FB.OnLoad()
 
 	ChatFrame_AddMessageEventFilter( "CHAT_MSG_COMBAT_FACTION_CHANGE", FB.FactionGainEvent )
 	FB.sessionStart = time()
-	FB_Frame:RegisterEvent( "ADDON_LOADED" )
 	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
 end
 function FB.OnUpdate( arg1 )
-	local now = time()
+	now = time()
 	if FB.lastUpdate + FB.updateInterval <= now then
 		FB.GenerateBarData()
 		FB.UpdateBars()
@@ -59,121 +65,114 @@ function FB.OnUpdate( arg1 )
 	end
 end
 -- Events
-function FB.ADDON_LOADED(...)
-	local a, b = ...
-	FB.Print( "Loaded version: "..FB_MSG_VERSION )
-	FB.Print( "b: "..(b or "nil") )
-end
--- function FB.ADDON_LOADED()
--- 	local genderStrings = {"","","_FEMALE"}
--- 	FB.genderString = genderStrings[( UnitSex( "player" ) or 0 )]
--- 	FB_Frame:UnregisterEvent( "ADDON_LOADED" )
--- 	if XHFrame then
--- 		FB.Print( "Found XH. Setting my location relative to the skillBar" )
--- 		FB_Frame:SetPoint( "TOP", "XH_SkillBar", "BOTTOM",0, -1 )
--- 	end
--- 	for _,ts in pairs( FB.timeFrames ) do
--- 		FB.maxTrack = max( FB.maxTrack, ts )
--- 	end
--- 	FB.Print( "Loaded version: "..FB_MSG_VERSION )
--- 	FB_Frame:Show()  -- Do this just in case it has bars to show.  It will hide itself if it does not.
--- end
 function FB.VARIABLES_LOADED()
 	FB_Frame:UnregisterEvent( "VARIABLES_LOADED" )
+	FB.Print( "Loaded version: "..FB_MSG_VERSION )
+
 	FB.AssureBars( FB_options.numBars )
--- 	FB.OptionsPanel_Reset()
+	-- FB.OptionsPanel_Reset()
+	if XHFrame then
+		FB.Print( "Found XH. Setting my location relative to the skillBar" )
+		FB_Frame:SetPoint( "TOP", "XH_SkillBar", "BOTTOM",0, -1 )
+	end
+	for _,ts in pairs( FB.timeFrames ) do
+		FB.maxTrack = max( FB.maxTrack, ts )
+	end
+	FB_Frame:Show()  -- Do this just in case it has bars to show.  It will hide itself if it does not.
 end
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
 	local count = #FB.bars
-	FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.");
+	-- FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.");
 	if ( not InCombatLockdown() and ( barsNeeded > count ) ) then
 		FB.Print( "I need to make "..(barsNeeded-count).." bars." )
--- 		for i = count+1, barsNeeded do
--- 			-- Create a bar
--- 			FB.Print("Creating bar# "..i);
--- 			local newBar = CreateFrame( "StatusBar", "FB_Bar"..i, FB_Frame, "FB_FactionBarTemplate" )
--- 			newBar:SetWidth( FB.barWidth )
--- 			newBar:SetHeight( FB.barHeight )
--- 			newBar:SetFrameStrata( "LOW" )
--- 			newBar:Hide()
--- 			--newBar:SetTexture("Interface\TargetingFrame\UI-StatusBar");
--- 			if (i == 1) then
--- 				newBar:SetPoint( "TOPLEFT", "FB_Frame", "TOPLEFT" )
--- 			else
--- 				newBar:SetPoint( "TOPLEFT", FB.bars[i-1], "BOTTOMLEFT" )
--- 			end
--- 			local text = newBar:CreateFontString( "FB_BarText"..i, "OVERLAY", "FB_FactionBarTextTemplate" )
--- 			newBar.text = text;
--- 			text:SetPoint( "TOPLEFT", newBar, "TOPLEFT", 5, 0 )
+		for i = count+1, barsNeeded do
+			-- Create a bar
+			FB.Print("Creating bar# "..i);
+			local newBar = CreateFrame( "StatusBar", "FB_Bar"..i, FB_Frame, "FB_FactionBarTemplate" )
+			newBar:SetWidth( FB.barWidth )
+			newBar:SetHeight( FB.barHeight )
+			newBar:SetFrameStrata( "LOW" )
+			newBar:Hide()
+			--newBar:SetTexture("Interface\TargetingFrame\UI-StatusBar");
+			if (i == 1) then
+				newBar:SetPoint( "TOPLEFT", "FB_Frame", "TOPLEFT" )
+			else
+				newBar:SetPoint( "TOPLEFT", FB.bars[i-1], "BOTTOMLEFT" )
+			end
+			local text = newBar:CreateFontString( "FB_BarText"..i, "OVERLAY", "FB_FactionBarTextTemplate" )
+			newBar.text = text;
+			text:SetPoint( "TOPLEFT", newBar, "TOPLEFT", 5, 0 )
 
--- 			FB.bars[i] = newBar
--- 		end
+			FB.bars[i] = newBar
+		end
 	end
--- 	return max( count, barsNeeded )
+	return max( count, barsNeeded )
 end
 function FB.UpdateBars()
-end
--- function FB.UpdateBars()
--- 	if not InCombatLockdown() then
--- 		-- Create a sorted index table of data from barData, count the table too
--- 		local count = 0
--- 		local sortedKeys = {}
--- 		for fac, val in pairs( FB.barData ) do
--- 			count = count + 1
--- 			sortedKeys[count] = {["fac"]=fac, ["maxTS"]=val.maxTS}
--- 		end
--- 		if( count == 0 ) then
--- 			FB_Frame:Hide()
--- 			FB.Print( "Hide Frame" )
--- 			return
--- 		end
--- 		local barCount = FB.AssureBars( count )
--- 		-- the key to sort on is the maxTS
--- 		table.sort( sortedKeys, function(a,b) return (a.maxTS>b.maxTS or (a.maxTS==b.maxTS and a.fac<b.fac)); end )
--- 		local showBars = min( #sortedKeys, FB_options.numBars )
--- 		FB_Frame:SetHeight( FB.barHeight*showBars )
-
--- 		for i = 1, showBars do
--- 			local fac = sortedKeys[i].fac
-
--- 			local val = FB.barData[fac]
--- 			FB.bars[i]:SetMinMaxValues( 0, val["barTopValue"] )
--- 			FB.bars[i]:SetValue( val["barEarnedValue"] )
--- 			FB.bars[i].text:SetText( val["outStr"] )
--- 			FB.bars[i]:SetStatusBarColor( val["barColor"]["r"],
--- 					val["barColor"]["g"], val["barColor"]["b"] )
--- 			FB.bars[i]:Show()
--- 		end
--- 		for barsHide = showBars+1, barCount do
--- 			if FB.bars[barsHide]:IsShown() then
--- 				FB.Print( "Hiding: "..barsHide )
--- 				FB.bars[barsHide]:Hide()
--- 			end
--- 		end
--- 	end
--- end
-function FB.FactionGainEvent( frame, event, message, ...)
-	-- FB.Print( event..":"..message )
-	if( not FB.FACTION_STANDING_DECREASED_PATTERN ) then
-		FB.FACTION_STANDING_DECREASED_PATTERN = FB.FormatToPattern(_G.FACTION_STANDING_DECREASED)
-	end
-	local _, _, factionName, amount = string.find(message, FB.FACTION_STANDING_DECREASED_PATTERN)
-	if (factionName) then
-		amount = -amount;
-	else
-		if (not FB.FACTION_STANDING_INCREASED_PATTERN) then
-			FB.FACTION_STANDING_INCREASED_PATTERN = FB.FormatToPattern(_G.FACTION_STANDING_INCREASED)
+	if not InCombatLockdown() then
+		-- Create a sorted index table of data from barData, count the table too
+		local count = 0
+		local sortedKeys = {}
+		for fac, val in pairs( FB_barData ) do
+			count = count + 1
+			sortedKeys[count] = {["fac"]=fac, ["maxTS"]=val.maxTS}
 		end
-		_, _, factionName, amount = string.find(message, FB.FACTION_STANDING_INCREASED_PATTERN)
-		amount = tonumber(amount)
+		if( count == 0 ) then
+			FB_Frame:Hide()
+			FB.Print( "Hide Frame" )
+			return
+		end
+		local barCount = FB.AssureBars( count )  -- assure enough bars to show data
+		-- sort by maxTS
+		table.sort( sortedKeys, function(a,b) return (a.maxTS>b.maxTS or (a.maxTS==b.maxTS and a.fac<b.fac)) end )
+		local showBars = min( #sortedKeys, FB_options.numBars )  -- how many bars to show
+		FB_Frame:SetHeight( FB.barHeight*showBars )
+		for i = 1, showBars do
+			local fac = sortedKeys[i].fac
+			local val = FB_barData[fac]
+			FB.bars[i]:SetMinMaxValues( val.currentReactionThreshold, val.nextReactionThreshold )
+			FB.bars[i]:SetValue( val.currentStanding )
+			FB.bars[i].text:SetText( val.outStr )
+			FB.bars[i]:SetStatusBarColor( val.barColor:GetRGBA() )
+			FB.bars[i]:Show()
+		end
+		for barsHide = showBars+1, barCount do
+			if FB.bars[barsHide]:IsShown() then
+				FB.Print( "Hiding: "..barsHide )
+				FB.bars[barsHide]:Hide()
+			end
+		end
+	end
+end
+function FB.FactionGainEvent( frame, event, message, ...)
+	FB.Print( event..":"..message )
+	local factionName = nil
+	for factionType, valueModifier in pairs( FB.patterns ) do
+		if not FB[factionType.."_PATTERN"] then
+			FB[factionType.."_PATTERN"] = FB.FormatToPattern(_G[factionType])
+		end
+		if not factionName then
+			_, _, factionName, amount = string.find( message, FB[factionType.."_PATTERN"] )
+			if factionName then
+				amount = amount * valueModifier
+			end
+		end
 	end
 	factionName = (factionName == "Guild" and GetGuildInfo("player") or factionName)
+	FB.Print( "FactionName: "..(factionName or "nil").." amount:"..(amount or "nil") )
 	FB.FactionGain( factionName, amount )
 end
 -- -------------
--- -- return a list of faction info
--- function FB.GetFactionInfo( factionNameIn )
+function FB.GetFactionInfo( factionNameIn )
+	-- returns some stuff (out of date?)
+	local factionID = FB.GetFactionIDByName( factionNameIn )
+	local factionData = C_Reputation.GetFactionDataByID( factionID )
+	if factionData then
+		--print( factionNameIn.."("..factionID.."): standing: "..factionData.currentStanding )
+
+	end
+
 -- 	for factionIndex = 1, GetNumFactions() do
 -- 		local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
 -- 				canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex);
@@ -200,46 +199,48 @@ end
 -- 		FB.Print("No faction found that matches: "..factionNameIn..". Pruning.");
 -- 		FB_repSaved[factionNameIn]=nil;
 -- 	end
--- end
+end
 function FB.GetFactionIDByName( factionNameIn )
-	for factionID = 1, 5000 do
-		local factionData = C_Reputation.GetFactionDataByID( factionID )
-		if factionData and factionData.name == factionNameIn then
-			FB_factionmap[factionData.name] = factionID
+	if not FB_factionmap[ factionNameIn ] then
+		for factionID = 1, 5000 do
+			factionData = C_Reputation.GetFactionDataByID( factionID )
+			if factionData and factionData.name == factionNameIn then
+				FB_factionmap[factionData.name] = factionID
+				print( "Adding "..factionData.name.." ("..factionID..")" )
+			end
 		end
 	end
 	return FB_factionmap[ factionNameIn ]
 end
 function FB.FactionGain( factionNameIn, repGainIn )
-	-- FB.Print( factionNameIn..":"..repGainIn )
+	FB.Print( factionNameIn..":"..(repGainIn or 'nil') )
 	factionID = FB.GetFactionIDByName( factionNameIn )
-	-- print( factionNameIn..":"..factionID  )
-	factionData = C_Reputation.GetFactionDataByID( factionID )
+	print( factionNameIn..":"..factionID  )
+	if factionID then
+		factionData = C_Reputation.GetFactionDataByID( factionID )
 
-	if factionData then
-		local now = time()
-		if not FB_repSaved[factionNameIn] then
-			FB_repSaved[factionNameIn] = {}
+		if factionData then
+			local now = time()
+			if not FB_repSaved[factionNameIn] then
+				FB_repSaved[factionNameIn] = {}
+			end
+			FB_repSaved[factionNameIn][now] =
+					(FB_repSaved[factionNameIn][now] and FB_repSaved[factionNameIn][now] + repGainIn) -- entry exists
+					or repGainIn; -- entry does not exist
+			if FB_options.autoChangeWatched and not factionData.isWatched then
+				C_Reputation.SetWatchedFactionByID( factionID )
+			end
 		end
-		FB_repSaved[factionNameIn][now] =
-				(FB_repSaved[factionNameIn][now] and FB_repSaved[factionNameIn][now] + repGainIn) -- entry exists
-				or repGainIn; -- entry does not exist
-		if FB_options.autoChangeWatched and not factionData.isWatched then
-			C_Reputation.SetWatchedFactionByID( factionID )
-		end
+		FB.lastUpdate = 0
 	end
-	FB.lastUpdate = 0
 	if not InCombatLockdown() then
 		FB_Frame:Show()
 	end
 end
-
 -- -- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
 -- -- based on Recap by Gello
 function FB.FormatToPattern(formatString)
-
 	local patternString = formatString
-
 	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1") -- reordering specifiers (e.g. %2$s) stripped
 	patternString = string.gsub(patternString, "([%$%(%)%.%[%]%*%+%-%?%^])", "%%%1") -- convert regex special characters
 
@@ -256,74 +257,69 @@ end
 -- -- makes sure it is sorted
 -- -- @TODO Make session work better
 function FB.GenerateBarData()
-end
--- function FB.GenerateBarData()
--- 	local now,allMaxTS = time(),0;
--- 	for faction, history in pairs(FB_repSaved) do
--- 		local session, ratetrack, track, maxTS, minTS = 0, 0, 0, 0, now;
--- 		for ts, gain in pairs(history) do
--- 			maxTS = max(maxTS, ts);
--- 			allMaxTS = max(allMaxTS, maxTS);
--- 			if ts ~= 0 and (ts > (now - FB.timeFrames[FB_options.trackPeriod])) then
--- 				minTS = min(minTS, ts);
--- 			end
--- 			session = session + (ts > FB.sessionStart and gain or 0);
--- 			track = track + (ts > (now - FB.timeFrames[FB_options.trackPeriod]) and gain or 0)
--- 			ratetrack = ratetrack + (ts > (now - 1800) and gain or 0)
--- 			if (ts > 0 and (ts < (now - FB.maxTrack))) then
--- 				history[0] =
--- 					(history[0] and history[0] + gain)
--- 					or gain;
--- 				history[ts]=nil;
--- 			end
--- 		end
--- 		local name, _, standing, _, barTopValue, barEarnedValue, _, _, _, _, _, _, barColor = FB.GetFactionInfo( faction );
--- 		if name then
-
--- 			if FB_options.trackPeriod == "session" then track=session; end
-
--- 			if track ~= 0 then
--- 				--local rate = track / FB.timeFrames[FB_options.trackPeriod];
--- 				local rate = ratetrack / 1800; -- hardcode to 30 minutes
--- 				local timeTillNext = (barTopValue - barEarnedValue) / ((rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod]))
--- 				-- calculate timeTillNext based on 30 minutes, or the range if no data in the last 30 min.
--- 				local reps = math.ceil((barTopValue - barEarnedValue) / history[maxTS]);
--- 		--FB.Print(faction..":"..now-minTS..":"..FB.timeFrames[FB_options.trackPeriod]..":"..SecondsToTime(timeTillNext));
--- 				FB.barData[faction] = {
--- 					["maxTS"] = maxTS,
--- 					["minTS"] = minTS,
--- 					["outStr"] = faction..
--- 						((FB_options.showStanding or FB_options.showPercent) and " (" or "")..
--- 						(FB_options.showStanding and standing or "")..
--- 						(FB_options.showPercent and string.format(" %0.2f%%", (barEarnedValue / barTopValue) * 100) or "")..
--- 						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
--- 						": "..
--- 						(FB_options.showLastGain and history[maxTS] or "")..
--- 						(FB_options.showRangeGain and (" ("..track..")") or "")..
--- 						(FB_options.showRepTillNext and (" -> "..(barTopValue - barEarnedValue)) or "")..
--- 						(FB_options.showRepAge and
--- 							(" ("..SecondsToTime(now-maxTS,false,false,1)..")") or "")..
--- 						(FB_options.showTimeTillNext and
--- 							(" in "..SecondsToTime(timeTillNext)) or "")..
--- 						(FB_options.showRepsTillNext and
--- 							(" "..reps.." rep"..(reps~=1 and "s" or "")) or "")..
--- 							"",
--- 					["barTopValue"] = barTopValue,
--- 					["barEarnedValue"] = barEarnedValue,
--- 					["barColor"] = barColor,
--- 				};
--- 			else
--- 				FB.barData[faction] = nil;
--- 			end
--- 		end
--- 	end
-
+	-- print("GenerateBarData")
+	local now,allMaxTS = time(),0
+	for factionName, history in pairs(FB_repSaved) do
+		local session, ratetrack, track, maxTS, minTS = 0, 0, 0, 0, now
+		for ts, gain in pairs(history) do
+			maxTS = max(maxTS, ts)
+			allMaxTS = max(allMaxTS, maxTS)
+			if ts ~= 0 and (ts > (now - FB.timeFrames[FB_options.trackPeriod])) then
+				minTS = min(minTS, ts)
+			end
+			session = session + (ts > FB.sessionStart and gain or 0)
+			track = track + (ts > (now - FB.timeFrames[FB_options.trackPeriod]) and gain or 0)
+			ratetrack = ratetrack + (ts > (now - 1800) and gain or 0)
+			if (ts > 0 and (ts < (now - FB.maxTrack))) then
+				history[0] =
+					(history[0] and history[0] + gain)
+					or gain
+				history[ts]=nil
+			end
+		end
+		factionData = C_Reputation.GetFactionDataByID( FB.GetFactionIDByName( factionName ) )
+		if factionData then
+			if track ~= 0 then
+				local rate = ratetrack / 1800
+				local timeTillNext = (factionData.nextReactionThreshold - factionData.currentStanding) /
+									 (( rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod]))
+				-- calculate timeTillNext based on 30 minutes, or the range if no data in the last 30 min.
+				local reps = math.ceil((factionData.nextReactionThreshold - factionData.currentStanding) / history[maxTS])
+				FB_barData[factionName] = {
+					["maxTS"] = maxTS,
+					["minTS"] = minTS,
+					["outStr"] = factionName..
+						((FB_options.showStanding or FB_options.showPercent) and " (" or "")..
+						(FB_options.showStanding and _G["FACTION_STANDING_LABEL"..factionData.reaction] or "")..
+						(FB_options.showPercent and string.format(" %0.2f%%", (factionData.currentStanding / factionData.nextReactionThreshold) * 100) or "")..
+						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
+						": "..
+						(FB_options.showLastGain and history[maxTS] or "")..
+						(FB_options.showRangeGain and (" ("..track..")") or "")..
+						(FB_options.showRepTillNext and (" -> "..(factionData.nextReactionThreshold - factionData.currentStanding)) or "")..
+						(FB_options.showRepAge and
+							(" ("..SecondsToTime(now-maxTS,false,false,1)..")") or "")..
+						(FB_options.showTimeTillNext and
+							(" in "..SecondsToTime(timeTillNext)) or "")..
+						(FB_options.showRepsTillNext and
+							(" "..reps.." rep"..(reps~=1 and "s" or "")) or "")..
+							"",
+					["nextReactionThreshold"] = factionData.nextReactionThreshold,
+					["currentReactionThreshold"] = factionData.currentReactionThreshold,
+					["currentStanding"] = factionData.currentStanding,
+					["barColor"] = _G["FACTION_BAR_COLORS"][factionData.reaction]
+				}
+			else
+				FB_barData[factionName] = nil
+			end
+		end
+	end
 -- --[[
 -- 	if FB_options.flexibleTimeWindow then
 -- 		FB.Print(allMaxTS..":"..now-FB.timeFrames[FB_options.trackPeriod]);
 -- 	end
 -- 	]]--
--- end
+end
 
 -- function FB.PrintStatus()
 -- 	FB.GenerateBarData();
