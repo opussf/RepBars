@@ -4,6 +4,7 @@ FB_MSG_AUTHOR    = GetAddOnMetadata( FB_SLUG, "Author" )
 FB_MSG_VERSION   = GetAddOnMetadata( FB_SLUG, "Version" )
 
 FB_repSaved = {}
+FB_factionmap = {}
 
 FB.barData = {}
 FB.lastUpdate = 0
@@ -32,7 +33,6 @@ FB.maxTrack = 0
 FB.bars = {} -- holds the bars
 FB.barHeight = 12
 FB.barWidth = 390
-FB_factionmap = {}
 FB_barData = {}
 FB.patterns = {
 	["FACTION_STANDING_DECREASED"] = -1,
@@ -54,8 +54,10 @@ function FB.OnLoad()
 	SlashCmdList["FB"] = function(msg) FB.Command(msg); end
 
 	ChatFrame_AddMessageEventFilter( "CHAT_MSG_COMBAT_FACTION_CHANGE", FB.FactionGainEvent )
+	-- COMBAT_TEXT_UPDATE( messageType, faction, amount )
 	FB.sessionStart = time()
 	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
+	-- UPDATE_FACTION
 end
 function FB.OnUpdate( arg1 )
 	now = time()
@@ -313,17 +315,17 @@ end
 -- 			SLASH_FB1, cmd, info.help[1], info.help[2]));
 -- 	end
 -- end
--- -- Commands
--- FB.CommandList = {
--- 	["help"] = {
--- 		["func"] = FB.PrintHelp,
--- 		["help"] = {"","Print this help."},
--- 	},
--- 	["rep"] = {
--- 		["func"] = FB.PrintStatus,
--- 		["help"] = {"","Prints Status"},
--- 	},
--- }
+-- Commands
+FB.CommandList = {
+	["help"] = {
+		["func"] = FB.PrintHelp,
+		["help"] = {"","Print this help."},
+	},
+	-- ["rep"] = {
+	-- 	["func"] = FB.PrintStatus,
+	-- 	["help"] = {"","Prints Status"},
+	-- },
+}
 -- function FB.ParseCmd(msg)
 -- 	if msg then
 -- 		local a,b,c = strfind(msg, "(%S+)");  --contiguous string of non-space characters
