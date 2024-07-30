@@ -63,6 +63,10 @@ function test.test_FactionGainEvent_Decrease_AccountWide_Value_Captured()
 	testValue = FB_repSaved["Find my Name"][now] or FB_repSaved["Find my Name"][now-1]
 	assertEquals( -7, testValue )
 end
+function test.notest_FactionGainEvent_Increase_Guild_Faction_Captured()
+	FB.FactionGainEvent( FB_Frame, "repEvent", "Reputation with Guild decreased by 14" )
+	assertTrue( FB_repSaved["Test Guild"] )
+end
 
 
 test.run()
