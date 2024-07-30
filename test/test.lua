@@ -3,7 +3,7 @@
 require "wowTest"
 
 test.outFileName = "testOut.xml"
-test.coberturaFileName = "../coverage.xml"
+-- test.coberturaFileName = "../coverage.xml"
 
 -- FB_Frame = CreateFrame()
 -- FactionBarsOptionsFrame = CreateFrame()
