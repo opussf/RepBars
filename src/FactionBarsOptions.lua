@@ -12,17 +12,18 @@ FB_options = {
 
 function FB.OptionsPanel_OnLoad(panel)
 	--FB.Print("OptionsPanel_OnLoad")
-	panel.name = "FactionBars";
-	FactionBarsOptionsFrame_Title:SetText(FB_MSG_ADDONNAME.." "..FB_MSG_VERSION);
+	panel.name = "FactionBars"
+	FactionBarsOptionsFrame_Title:SetText(FB_MSG_ADDONNAME.." "..FB_MSG_VERSION)
 	--panel.parent="";
-	panel.okay = FB.OptionsPanel_OKAY;
-	panel.cancel = FB.OptionsPanel_Cancel;
-	panel.default = FB.OptionsPanel_Default;
---	panel.refresh = FB.OptionsPanel_Refresh;
+	panel.OnCommit = FB.OptionsPanel_OKAY
+--	panel.cancel = FB.OptionsPanel_Cancel
+	panel.OnDefault = FB.OptionsPanel_Default
+	panel.OnRefresh = FB.OptionsPanel_Refresh
 
-	InterfaceOptions_AddCategory(panel);
-	InterfaceAddOnsList_Update();
-	--FB.OptionsPanel_TrackPeriodSlider_OnLoad()
+	-- Register Options frame
+	local category, layout = Settings.RegisterCanvasLayoutCategory( panel, panel.name )
+	panel.category = category
+	Settings.RegisterAddOnCategory(category)
 end
 
 function FB.OptionsPanel_OKAY()
@@ -47,12 +48,10 @@ function FB.OptionsPanel_Default()
 		["showStanding"] = true,
 	}
 end
---[[
 function FB.OptionsPanel_Refresh()
 	-- This gets called, it seems, when the options panel is opened.
 	FB.Print("OptionsPanel_Refresh");
 end
-]]--
 function FB.OptionsPanel_Reset() -- Called from the ADDON_LOADED event function
 	FB.OptionsPanel_NumBarSlider_Init(FactionBarsOptionsFrame_NumBars);
 	FB.OptionsPanel_TrackPeriodSlider_Init(FactionBarsOptionsFrame_TrackPeriodSlider);

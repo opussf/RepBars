@@ -253,6 +253,7 @@ function FB.GenerateBarData()
 									 (( rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod]))
 				-- calculate timeTillNext based on 30 minutes, or the range if no data in the last 30 min.
 				local reps = math.ceil((factionData.nextReactionThreshold - factionData.currentStanding) / history[maxTS])
+				paragonData = C_Reputation.GetFactionParagonInfo( FB.GetFactionIDByName( factionName ) )
 				FB_barData[factionName] = {
 					["maxTS"] = maxTS,
 					["minTS"] = minTS,
@@ -275,7 +276,13 @@ function FB.GenerateBarData()
 					["nextReactionThreshold"] = factionData.nextReactionThreshold,
 					["currentReactionThreshold"] = factionData.currentReactionThreshold,
 					["currentStanding"] = factionData.currentStanding,
-					["barColor"] = _G["FACTION_BAR_COLORS"][factionData.reaction]
+					["reaction"] = factionData.reaction,
+					["barColor"] = _G["FACTION_BAR_COLORS"][factionData.reaction],
+					["paragonCurrentValue"] = (paragonData and paragonData.currentValue),
+					["paragonThreshold"] = (paragonData and paragonData.threshold),
+					["paragonRewardQuestID"] = (paragonData and paragonData.rewardQuestID),
+					["paragonHasRewardPending"] = (paragonData and paragonData.hasRewardPending),
+					["paragonTooLowLevelForParagon"] = (paragonData and paragonData.tooLowLevelForParagon),
 				}
 			else
 				FB_barData[factionName] = nil
