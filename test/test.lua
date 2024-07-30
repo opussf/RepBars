@@ -67,6 +67,12 @@ function test.notest_FactionGainEvent_Increase_Guild_Faction_Captured()
 	FB.FactionGainEvent( FB_Frame, "repEvent", "Reputation with Guild decreased by 14" )
 	assertTrue( FB_repSaved["Test Guild"] )
 end
-
+function test.test_FactionGainEvent_Increase_Normal_Value_Captured_multipleValues()
+	FB.FactionGainEvent( FB_Frame, "repEvent", "Reputation with Stormwind increased by 101" )
+	FB.FactionGainEvent( FB_Frame, "repEvent", "Reputation with Stormwind increased by 202" )
+	now = time()
+	testValue = FB_repSaved["Stormwind"][now] or FB_repSaved["Stormwind"][now-1]
+	assertEquals( 303, testValue )
+end
 
 test.run()
