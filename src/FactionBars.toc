@@ -1,4 +1,4 @@
-## Title: Faction Bars v@VERSION@
+## Title: Faction Bars
 ## Interface: @INTERFACE@
 ## Notes: Follow Progress on multible reputations @VERSION@
 ## Author: opussf

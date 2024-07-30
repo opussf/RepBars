@@ -10,7 +10,8 @@ FB.lastUpdate = 0
 FB.updateInterval = 5 -- update every 5 seconds
 
 FB.timeFrames = {
-	["session"]  =       0,
+	["1 minute"]  =     60,
+	["2 minutes"] =    180,
 	["5 minutes"] =    300,
 	["15 minutes"] =   900,
 	["half hour"] =   1800,
@@ -83,8 +84,8 @@ end
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
 	local count = #FB.bars
-	-- FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.");
 	if ( not InCombatLockdown() and ( barsNeeded > count ) ) then
+		FB.Print("I need "..barsNeeded.." bars. I have "..count.." bars.")
 		FB.Print( "I need to make "..(barsNeeded-count).." bars." )
 		for i = count+1, barsNeeded do
 			-- Create a bar
@@ -146,7 +147,7 @@ function FB.UpdateBars()
 	end
 end
 function FB.FactionGainEvent( frame, event, message, ...)
-	FB.Print( event..":"..message )
+	-- FB.Print( event..":"..message )
 	local factionName = nil
 	for factionType, valueModifier in pairs( FB.patterns ) do
 		if not FB[factionType.."_PATTERN"] then
@@ -161,45 +162,13 @@ function FB.FactionGainEvent( frame, event, message, ...)
 	end
 	factionName = (factionName == "Guild" and GetGuildInfo("player") or factionName)
 	FB.Print( "FactionName: "..(factionName or "nil").." amount:"..(amount or "nil") )
-	FB.FactionGain( factionName, amount )
+	if factionName then
+		FB.FactionGain( factionName, amount )
+	else
+		FB.Print( "Not able to decode: "..message )
+	end
 end
 -- -------------
-function FB.GetFactionInfo( factionNameIn )
-	-- returns some stuff (out of date?)
-	local factionID = FB.GetFactionIDByName( factionNameIn )
-	local factionData = C_Reputation.GetFactionDataByID( factionID )
-	if factionData then
-		--print( factionNameIn.."("..factionID.."): standing: "..factionData.currentStanding )
-
-	end
-
--- 	for factionIndex = 1, GetNumFactions() do
--- 		local name, description, standingId, bottomValue, topValue, earnedValue, atWarWith,
--- 				canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID = GetFactionInfo(factionIndex);
--- 		if isCollapsed then
--- 			ExpandFactionHeader(factionIndex);
--- 			return nil;
--- 		end
--- 		if standingId == 8 and C_Reputation.IsFactionParagon( factionID ) then  -- exalted and Paragon faction
--- 			curVal, threshold, _, hasPending = C_Reputation.GetFactionParagonInfo( factionID )
--- 		else
--- 			curVal, threshold, hasPending = nil, nil, nil
--- 		end
--- 		local barBottomValue = 0;
--- 		local barTopValue = threshold or (topValue - bottomValue);
--- 		local barEarnedValue = curVal and mod( curVal, threshold ) or (earnedValue - bottomValue);
--- 		local standingStr = _G["FACTION_STANDING_LABEL"..standingId..FB.genderString];
--- 		if name == factionNameIn then
--- 			--FB.Print(name..":"..bottomValue.."<"..earnedValue.."<"..topValue);
--- 			return name, description, standingStr, barBottomValue, barTopValue, barEarnedValue, atWarWith,
--- 					canToggleAtWar, isHeader, isCollapsed, isWatched, factionIndex, FACTION_BAR_COLORS[standingId] ;
--- 		end
--- 	end
--- 	if not name then
--- 		FB.Print("No faction found that matches: "..factionNameIn..". Pruning.");
--- 		FB_repSaved[factionNameIn]=nil;
--- 	end
-end
 function FB.GetFactionIDByName( factionNameIn )
 	if not FB_factionmap[ factionNameIn ] then
 		for factionID = 1, 5000 do
@@ -213,9 +182,9 @@ function FB.GetFactionIDByName( factionNameIn )
 	return FB_factionmap[ factionNameIn ]
 end
 function FB.FactionGain( factionNameIn, repGainIn )
-	FB.Print( factionNameIn..":"..(repGainIn or 'nil') )
+	-- FB.Print( factionNameIn..":"..(repGainIn or 'nil') )
 	factionID = FB.GetFactionIDByName( factionNameIn )
-	print( factionNameIn..":"..factionID  )
+	-- print( factionNameIn..":"..factionID  )
 	if factionID then
 		factionData = C_Reputation.GetFactionDataByID( factionID )
 
@@ -233,9 +202,8 @@ function FB.FactionGain( factionNameIn, repGainIn )
 		end
 		FB.lastUpdate = 0
 	end
-	if not InCombatLockdown() then
-		FB_Frame:Show()
-	end
+	FB_Frame:Show()
+	FB.lastUpdate = 0
 end
 -- -- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
 -- -- based on Recap by Gello
