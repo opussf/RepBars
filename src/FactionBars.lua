@@ -195,7 +195,7 @@ function FB.FactionGain( factionNameIn, repGainIn )
 			end
 			FB_repSaved[factionNameIn][now] =
 					(FB_repSaved[factionNameIn][now] and FB_repSaved[factionNameIn][now] + repGainIn) -- entry exists
-					or repGainIn; -- entry does not exist
+					or repGainIn -- entry does not exist
 			if FB_options.autoChangeWatched and not factionData.isWatched then
 				C_Reputation.SetWatchedFactionByID( factionID )
 			end
