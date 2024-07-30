@@ -161,7 +161,7 @@ function FB.FactionGainEvent( frame, event, message, ...)
 		end
 	end
 	factionName = (factionName == "Guild" and GetGuildInfo("player") or factionName)
-	FB.Print( "FactionName: "..(factionName or "nil").." amount:"..(amount or "nil") )
+	-- FB.Print( "FactionName: "..(factionName or "nil").." amount:"..(amount or "nil") )
 	if factionName then
 		FB.FactionGain( factionName, amount )
 	else
@@ -200,7 +200,6 @@ function FB.FactionGain( factionNameIn, repGainIn )
 				C_Reputation.SetWatchedFactionByID( factionID )
 			end
 		end
-		FB.lastUpdate = 0
 	end
 	FB_Frame:Show()
 	FB.lastUpdate = 0
@@ -245,7 +244,8 @@ function FB.GenerateBarData()
 				history[ts]=nil
 			end
 		end
-		factionData = C_Reputation.GetFactionDataByID( FB.GetFactionIDByName( factionName ) )
+		factionID = FB.GetFactionIDByName( factionName )
+		if factionID then factionData = C_Reputation.GetFactionDataByID( factionID ) end
 		if factionData then
 			if track ~= 0 then
 				local rate = ratetrack / 1800
@@ -287,6 +287,9 @@ function FB.GenerateBarData()
 			else
 				FB_barData[factionName] = nil
 			end
+		else
+			print( "Pruning faction: "..factionName )
+			FB_repSaved[factionName] = nil
 		end
 	end
 -- --[[
