@@ -301,48 +301,47 @@ function FB.GenerateBarData()
 -- 	]]--
 end
 
--- function FB.PrintStatus()
--- 	FB.GenerateBarData();
--- 	for _, val in pairs(FB.barData) do
--- 		FB.Print(val["outStr"]);
--- 	end
--- end
-
--- function FB.PrintHelp()
--- 	FB.Print(RF_MSG_ADDONNAME.." by "..RF_MSG_AUTHOR);
--- 	for cmd, info in pairs(FB.CommandList) do
--- 		FB.Print(string.format("%s %s %s -> %s",
--- 			SLASH_FB1, cmd, info.help[1], info.help[2]));
--- 	end
--- end
+function FB.PrintStatus()
+	FB.GenerateBarData()
+	for _, val in pairs(FB.barData) do
+		FB.Print(val["outStr"])
+	end
+end
+function FB.PrintHelp()
+	FB.Print(RF_MSG_ADDONNAME.." by "..RF_MSG_AUTHOR)
+	for cmd, info in pairs(FB.CommandList) do
+		FB.Print(string.format("%s %s %s -> %s",
+			SLASH_FB1, cmd, info.help[1], info.help[2]))
+	end
+end
 -- Commands
 FB.CommandList = {
 	["help"] = {
 		["func"] = FB.PrintHelp,
 		["help"] = {"","Print this help."},
 	},
-	-- ["rep"] = {
-	-- 	["func"] = FB.PrintStatus,
-	-- 	["help"] = {"","Prints Status"},
-	-- },
+	["rep"] = {
+		["func"] = FB.PrintStatus,
+		["help"] = {"","Prints Status"},
+	},
 }
--- function FB.ParseCmd(msg)
--- 	if msg then
--- 		local a,b,c = strfind(msg, "(%S+)");  --contiguous string of non-space characters
--- 		if a then
--- 			return c, strsub(msg, b+2);
--- 		else
--- 			return "";
--- 		end
--- 	end
--- end
--- function FB.Command(msg)
--- 	local cmd, param = FB.ParseCmd(msg);
--- 	cmd = string.lower(cmd);
--- 	local cmdFunc = FB.CommandList[cmd];
--- 	if cmdFunc then
--- 		cmdFunc.func(param);
--- 	else
--- 		InterfaceOptionsFrame_OpenToCategory(FB_MSG_ADDONNAME);
--- 	end
--- end
+function FB.ParseCmd(msg)
+	if msg then
+		local a,b,c = strfind(msg, "(%S+)");  --contiguous string of non-space characters
+		if a then
+			return c, strsub(msg, b+2)
+		else
+			return ""
+		end
+	end
+end
+function FB.Command(msg)
+	local cmd, param = FB.ParseCmd(msg)
+	cmd = string.lower(cmd)
+	local cmdFunc = FB.CommandList[cmd]
+	if cmdFunc then
+		cmdFunc.func(param)
+	else
+		Settings.OpenToCategory( FactionBarsOptionsFrame.category:GetID() )
+	end
+end
