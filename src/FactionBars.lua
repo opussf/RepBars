@@ -74,14 +74,17 @@ function FB.VARIABLES_LOADED()
 
 	FB.AssureBars( FB_options.numBars )
 	FB.OptionsPanel_Reset()
-	if XHFrame then
-		FB.Print( "Found XH. Setting my location relative to the skillBar" )
-		FB_Frame:SetPoint( "TOP", "XH_SkillBar", "BOTTOM",0, -1 )
-	end
+	FB.XHFrame()
 	for _,ts in pairs( FB.timeFrames ) do
 		FB.maxTrack = max( FB.maxTrack, ts )
 	end
 	FB_Frame:Show()  -- Do this just in case it has bars to show.  It will hide itself if it does not.
+end
+function FB.XHFrame()
+	if XHFrame then
+		FB.Print( "Found XH. Setting my location relative to the skillBar" )
+		FB_Frame:SetPoint( "TOP", "XH_SkillBar", "BOTTOM",0, -1 )
+	end
 end
 function FB.AssureBars( barsNeeded )
 	-- make sure that there are enough bars to handle the need
@@ -300,7 +303,19 @@ function FB.GenerateBarData()
 -- 	end
 -- 	]]--
 end
-
+function FB.UIReset()
+	FB_Frame:ClearAllPoints()
+	FB_Frame:SetPoint("TOP")
+	FB.XHFrame()
+end
+function FB.OnDragStart()
+	if FB_options.unlocked then
+		FB_Frame:StartMoving()
+	end
+end
+function FB.OnDragStop()
+	FB_Frame:StopMovingOrSizing()
+end
 function FB.PrintStatus()
 	FB.GenerateBarData()
 	for _, val in pairs(FB.barData) do
@@ -324,6 +339,17 @@ FB.CommandList = {
 		["func"] = FB.PrintStatus,
 		["help"] = {"","Prints Status"},
 	},
+	["lock"] = {
+		["func"] = function() FB_options.unlocked = not FB_options.unlocked
+				FB.Print( FB_options.unlocked and "UI unlocked" or "UI locked" )
+			end,
+		["help"] = {"","Toggle display lock."},
+	},
+	["uireset"] = {
+		["func"] = FB.UIReset,
+		["help"] = {"","Reset the position of the UI"}
+	},
+
 }
 function FB.ParseCmd(msg)
 	if msg then

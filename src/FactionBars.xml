@@ -27,15 +27,21 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 		</Layers>
 		<Scripts>
 			<OnLoad>
-				FB.OnLoad();
-				self:Hide();
+				FB.OnLoad()
+				self:Hide()
 			</OnLoad>
 			<OnUpdate>
-				FB.OnUpdate( arg1 );
+				FB.OnUpdate( arg1 )
 			</OnUpdate>
 			<OnEvent>
-				FB[event](self, ...);
+				FB[event](self, ...)
 			</OnEvent>
+			<OnMouseDown>
+				FB.OnDragStart()
+			</OnMouseDown>
+			<OnMouseUp>
+				FB.OnDragStop()
+			</OnMouseUp>
 		</Scripts>
 	</Frame>
 </Ui>
