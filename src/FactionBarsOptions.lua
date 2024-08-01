@@ -4,19 +4,58 @@ FB.defaultOptions = {
 	["showStanding"] = true,
 }
 
-FB_options = {
-	["trackPeriod"] = "1 hour",
-	["numBars"] = 5,
-	["showStanding"] = true,
-}
+FB_options = {}
+function FB.UpdateOptions()
+	for k,v in pairs( FB.defaultOptions ) do
+		FB_options[k] = ( FB_options[k] == nil and v or FB_options[k] )
+	end
+end
+function FB.OptionsPanel_Reset() -- Called from the ADDON_LOADED event function
+	FB.OptionsPanel_Refresh()
+end
+function FB.OptionsPanel_OKAY()
+	-- Data was recorded, clear the temp
+	FB.oldValues = nil
+end
+function FB.OptionsPanel_Cancel()
+	-- reset to temp and update the UI
+	if FB.oldValues then
+		for key,val in pairs(FB.oldValues) do
+			--FB.Print(key..":"..val)
+			FB_options[key] = val
+		end
+	end
+	FB.oldValues = nil
+end
+function FB.OptionsPanel_Default()
+	FB_options = {}
+	for k,v in pairs( FB.defaultOptions ) do
+		FB_options[k] = v
+	end
+end
+function FB.OptionsPanel_Refresh()
+	-- This gets called, it seems, when the options panel is opened.
+	-- FB.Print("OptionsPanel_Refresh")
+	FB.OptionsPanel_NumBarSlider_Init(FactionBarsOptionsFrame_NumBars)
+	FB.OptionsPanel_TrackPeriodSlider_Init(FactionBarsOptionsFrame_TrackPeriodSlider)
+	FactionBarsOptionsFrame_AutoChangeWatchedBox:SetChecked( FB_options["autoChangeWatched"] )
 
+	FactionBarsOptionsFrame_ShowStandingBox:SetChecked( FB_options["showStanding"] )
+	FactionBarsOptionsFrame_ShowPercentBox:SetChecked( FB_options["showPercent"] )
+	FactionBarsOptionsFrame_ShowLastGainBox:SetChecked( FB_options["showLastGain"] )
+	FactionBarsOptionsFrame_ShowRangeGainBox:SetChecked( FB_options["showRangeGain"] )
+	FactionBarsOptionsFrame_ShowRepTillNextBox:SetChecked( FB_options["showRepTillNext"] )
+	FactionBarsOptionsFrame_ShowRepAgeBox:SetChecked( FB_options["showRepAge"] )
+	FactionBarsOptionsFrame_ShowTimeTillNextBox:SetChecked( FB_options["showTimeTillNext"] )
+	FactionBarsOptionsFrame_ShowRepsTillNextBox:SetChecked( FB_options["autoChangeWatched"] )
+end
 function FB.OptionsPanel_OnLoad(panel)
 	--FB.Print("OptionsPanel_OnLoad")
 	panel.name = "FactionBars"
-	FactionBarsOptionsFrame_Title:SetText(FB_MSG_ADDONNAME.." "..FB_MSG_VERSION)
+	FactionBarsOptionsFrame_Title:SetText(FB_MSG_ADDONNAME.." v"..FB_MSG_VERSION)
 	--panel.parent="";
+	panel.cancel = FB.OptionsPanel_Cancel
 	panel.OnCommit = FB.OptionsPanel_OKAY
---	panel.cancel = FB.OptionsPanel_Cancel
 	panel.OnDefault = FB.OptionsPanel_Default
 	panel.OnRefresh = FB.OptionsPanel_Refresh
 
@@ -24,58 +63,28 @@ function FB.OptionsPanel_OnLoad(panel)
 	local category, layout = Settings.RegisterCanvasLayoutCategory( panel, panel.name )
 	panel.category = category
 	Settings.RegisterAddOnCategory(category)
-end
-
-function FB.OptionsPanel_OKAY()
-	-- Data was recorded, clear the temp
-	FB.oldValues = nil;
-end
-function FB.OptionsPanel_Cancel()
-	-- reset to temp and update the UI
-	if FB.oldValues then
-		for key,val in pairs(FB.oldValues) do
-			--FB.Print(key..":"..val);
-			FB_options[key] = val;
-		end
-	end
-	FB.oldValues = nil;
-	FB.OptionsPanel_Reset();	-- Call this once the values are restored to reset the UI
-end
-function FB.OptionsPanel_Default()
-	FB_options = {
-		["trackPeriod"] = "1 hour",
-		["numBars"] = 5,
-		["showStanding"] = true,
-	}
-end
-function FB.OptionsPanel_Refresh()
-	-- This gets called, it seems, when the options panel is opened.
-	FB.Print("OptionsPanel_Refresh");
-end
-function FB.OptionsPanel_Reset() -- Called from the ADDON_LOADED event function
-	FB.OptionsPanel_NumBarSlider_Init(FactionBarsOptionsFrame_NumBars);
-	FB.OptionsPanel_TrackPeriodSlider_Init(FactionBarsOptionsFrame_TrackPeriodSlider);
+	FB.UpdateOptions()
 end
 -------
 function FB.OptionsPanel_TrackPeriodSlider_OnLoad(self)
-	FB.sortedPeriodValues = {};
+	FB.sortedPeriodValues = {}
 	for name, val in pairs(FB.timeFrames) do
-		table.insert(FB.sortedPeriodValues, {["name"]=name, ["val"]=val});
+		table.insert(FB.sortedPeriodValues, {["name"]=name, ["val"]=val})
 	end
-	table.sort(FB.sortedPeriodValues, function(a,b) return a.val<b.val; end );
-	self:SetMinMaxValues(1, #FB.sortedPeriodValues);
-	getglobal(self:GetName().."Low"):SetText(FB.sortedPeriodValues[1].name);
-	getglobal(self:GetName().."High"):SetText(FB.sortedPeriodValues[#FB.sortedPeriodValues].name);
-	getglobal(self:GetName().."Text"):SetText("Show bars for ()");
+	table.sort(FB.sortedPeriodValues, function(a,b) return a.val<b.val; end )
+	self:SetMinMaxValues(1, #FB.sortedPeriodValues)
+	getglobal(self:GetName().."Low"):SetText(FB.sortedPeriodValues[1].name)
+	getglobal(self:GetName().."High"):SetText(FB.sortedPeriodValues[#FB.sortedPeriodValues].name)
+	getglobal(self:GetName().."Text"):SetText("Show bars for ()")
 end
 function FB.OptionsPanel_TrackPeriodSlider_Init(self)
 	for i=1, #FB.sortedPeriodValues do
 		if FB.sortedPeriodValues[i].name == FB_options.trackPeriod then
 			--FB.Print("Setting to "..i.." for "..FB_options.trackPeriod);
-			self:SetValue(i);
+			self:SetValue(i)
 		end
 	end
-	getglobal(self:GetName().."Text"):SetText("Show bars for ("..FB_options.trackPeriod..")");
+	getglobal(self:GetName().."Text"):SetText("Show bars for ("..FB_options.trackPeriod..")")
 end
 function FB.OptionsPanel_TrackPeriodSlider_OnValueChanged(self)
 	if FB.oldValues then
@@ -117,17 +126,15 @@ function FB.OptionsPanel_NumBarSlider_OnValueChanged(self)
 	FB_Frame:Show();
 end
 ------
-function FB.OptionsPanel_CheckButton_OnLoad( self, option, text )
-	--FB.Print("CheckButton_OnLoad( "..option..", "..text.." ) -> "..(FB_options[option] and "checked" or "nil"));
-	getglobal(self:GetName().."Text"):SetText(text);
-	self:SetChecked(FB_options[option]);
+function FB.OptionsPanel_CheckButton_OnShow( self, option, text )
+	-- FB.Print("CheckButton_OnShow( "..option..", "..text.." ) -> "..(FB_options[option] and "checked" or "nil"));
+	getglobal(self:GetName().."Text"):SetText(text)
 end
 function FB.OptionsPanel_CheckButton_PostClick( self, option )
 	if FB.oldValues then
-		FB.oldValues[option] = FB.oldValues[option] or FB_options[option];
+		FB.oldValues[option] = FB.oldValues[option] or FB_options[option]
 	else
-		FB.oldValues={[option]=FB_options[option]};
+		FB.oldValues={[option]=FB_options[option]}
 	end
-	FB_options[option] = self:GetChecked();
-	FB.lastUpdate=0;
+	FB_options[option] = self:GetChecked()
 end

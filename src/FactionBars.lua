@@ -73,7 +73,7 @@ function FB.VARIABLES_LOADED()
 	FB.Print( "Loaded version: "..FB_MSG_VERSION )
 
 	FB.AssureBars( FB_options.numBars )
-	-- FB.OptionsPanel_Reset()
+	FB.OptionsPanel_Reset()
 	if XHFrame then
 		FB.Print( "Found XH. Setting my location relative to the skillBar" )
 		FB_Frame:SetPoint( "TOP", "XH_SkillBar", "BOTTOM",0, -1 )

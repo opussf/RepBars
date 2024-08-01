@@ -9,5 +9,5 @@
 ## SavedVariablesPerCharacter: FB_repSaved FB_factionmap FB_barData
 FactionBars.lua
 FactionBars.xml
-## FactionBarsOptions.lua
-## FactionBarsOptions.xml
+FactionBarsOptions.lua
+FactionBarsOptions.xml
