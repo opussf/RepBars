@@ -123,7 +123,7 @@ function FB.UpdateBars()
 		end
 		if( count == 0 ) then
 			FB_Frame:Hide()
-			FB.Print( "Hide Frame" )
+			-- FB.Print( "Hide Frame" )
 			return
 		end
 		local barCount = FB.AssureBars( count )  -- assure enough bars to show data
