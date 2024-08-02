@@ -6,7 +6,7 @@ FB_MSG_VERSION   = GetAddOnMetadata( FB_SLUG, "Version" )
 FB_repSaved = {}
 FB_factionmap = {}
 
-FB.barData = {}
+-- FB.barData = {}  -- Move this back internal at some point
 FB.lastUpdate = 0
 FB.updateInterval = 5 -- update every 5 seconds
 
@@ -58,6 +58,9 @@ function FB.OnLoad()
 	FB.sessionStart = time()
 	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
 	-- UPDATE_FACTION
+	for _,ts in pairs( FB.timeFrames ) do
+		FB.maxTrack = max( FB.maxTrack, ts )
+	end
 end
 function FB.OnUpdate( arg1 )
 	now = time()
@@ -75,9 +78,6 @@ function FB.VARIABLES_LOADED()
 	FB.AssureBars( FB_options.numBars )
 	FB.OptionsPanel_Reset()
 	FB.XHFrame()
-	for _,ts in pairs( FB.timeFrames ) do
-		FB.maxTrack = max( FB.maxTrack, ts )
-	end
 	FB_Frame:Show()  -- Do this just in case it has bars to show.  It will hide itself if it does not.
 end
 function FB.XHFrame()
@@ -173,14 +173,14 @@ function FB.FactionGainEvent( frame, event, message, ...)
 		FB.Print( "Not able to decode: "..message )
 	end
 end
--- -------------
+-- -- -------------
 function FB.GetFactionIDByName( factionNameIn )
 	if not FB_factionmap[ factionNameIn ] then
 		for factionID = 1, 5000 do
 			factionData = C_Reputation.GetFactionDataByID( factionID )
 			if factionData and factionData.name == factionNameIn then
 				FB_factionmap[factionData.name] = factionID
-				print( "Adding "..factionData.name.." ("..factionID..")" )
+				FB.Print( "Adding "..factionData.name.." ("..factionID..")" )
 			end
 		end
 	end
@@ -209,8 +209,8 @@ function FB.FactionGain( factionNameIn, repGainIn )
 	FB_Frame:Show()
 	FB.lastUpdate = 0
 end
--- -- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
--- -- based on Recap by Gello
+-- Converts string.format to a string.find pattern: "%s hits %s for %d." to "(.+) hits (.+) for (%d+)"
+-- based on Recap by Gello
 function FB.FormatToPattern(formatString)
 	local patternString = formatString
 	patternString = string.gsub(patternString, "%%%d+%$([diouXxfgbcsq])", "%%%1") -- reordering specifiers (e.g. %2$s) stripped
@@ -223,11 +223,10 @@ function FB.FormatToPattern(formatString)
 
 	return patternString
 end
-
--- -- Output
--- -- processed data into FB.barData
--- -- makes sure it is sorted
--- -- @TODO Make session work better
+-- Output
+-- processed data into FB.barData
+-- makes sure it is sorted
+-- @TODO Make session work better
 function FB.GenerateBarData()
 	-- print("GenerateBarData")
 	local now,allMaxTS = time(),0
@@ -297,11 +296,11 @@ function FB.GenerateBarData()
 			FB_repSaved[factionName] = nil
 		end
 	end
--- --[[
--- 	if FB_options.flexibleTimeWindow then
--- 		FB.Print(allMaxTS..":"..now-FB.timeFrames[FB_options.trackPeriod]);
--- 	end
--- 	]]--
+    --[[
+	if FB_options.flexibleTimeWindow then
+		FB.Print(allMaxTS..":"..now-FB.timeFrames[FB_options.trackPeriod]);
+	end
+	]]--
 end
 function FB.UIReset()
 	FB_Frame:ClearAllPoints()
@@ -318,12 +317,12 @@ function FB.OnDragStop()
 end
 function FB.PrintStatus()
 	FB.GenerateBarData()
-	for _, val in pairs(FB.barData) do
+	for _, val in pairs(FB_barData) do
 		FB.Print(val["outStr"])
 	end
 end
 function FB.PrintHelp()
-	FB.Print(RF_MSG_ADDONNAME.." by "..RF_MSG_AUTHOR)
+	FB.Print(FB_MSG_ADDONNAME.." by "..FB_MSG_AUTHOR)
 	for cmd, info in pairs(FB.CommandList) do
 		FB.Print(string.format("%s %s %s -> %s",
 			SLASH_FB1, cmd, info.help[1], info.help[2]))
@@ -349,7 +348,6 @@ FB.CommandList = {
 		["func"] = FB.UIReset,
 		["help"] = {"","Reset the position of the UI"}
 	},
-
 }
 function FB.ParseCmd(msg)
 	if msg then

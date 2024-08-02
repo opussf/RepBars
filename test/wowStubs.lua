@@ -216,14 +216,14 @@ LE_PARTY_CATEGORY_INSTANCE = 2
 -- WowToken
 TokenPrice = 123456 -- 12G 34S 45C
 --- Factions
-globals.FACTION_STANDING_LABEL1 = "Hated"
-globals.FACTION_STANDING_LABEL2 = "Hostile"
-globals.FACTION_STANDING_LABEL3 = "Unfriendly"
-globals.FACTION_STANDING_LABEL4 = "Neutral"
-globals.FACTION_STANDING_LABEL5 = "Friendly"
-globals.FACTION_STANDING_LABEL6 = "Honored"
-globals.FACTION_STANDING_LABEL7 = "Revered"
-globals.FACTION_STANDING_LABEL8 = "Exalted"
+FACTION_STANDING_LABEL1 = "Hated"
+FACTION_STANDING_LABEL2 = "Hostile"
+FACTION_STANDING_LABEL3 = "Unfriendly"
+FACTION_STANDING_LABEL4 = "Neutral"
+FACTION_STANDING_LABEL5 = "Friendly"
+FACTION_STANDING_LABEL6 = "Honored"
+FACTION_STANDING_LABEL7 = "Revered"
+FACTION_STANDING_LABEL8 = "Exalted"
 FACTION_STANDING_INCREASED = "Reputation with %s increased by %d"
 FACTION_STANDING_DECREASED = "Reputation with %s decreased by %d"
 FACTION_STANDING_INCREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s increased by %d"
@@ -684,6 +684,9 @@ function CloseMail()
 	-- @TODO - Write this
 end
 ]]
+function InCombatLockdown()
+	return false
+end
 function CombatLogGetCurrentEventInfo()
 	-- return much the same info as used to be passed to the LOG_UNFILTERD event
 	-- set CombatLogCurrentEventInfo = {} to return specific data.
@@ -1831,6 +1834,8 @@ function C_Reputation.GetFactionDataByID( idIn )
 			return factionData
 		end
 	end
+end
+function C_Reputation.GetFactionParagonInfo()
 end
 
 -- A SAX parser takes a content handler, which provides these methods:
