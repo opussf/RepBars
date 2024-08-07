@@ -85,14 +85,14 @@ function test.test_Help()
 	assertEquals( 5, #chatLog )
 end
 function test.test_UI_unlock()
-	FB_options.unlocked = false
+	FB.uiUnlocked = false
 	FB.Command( "lock" )
-	assertTrue( FB_options.unlocked )
+	assertTrue( FB.uiUnlocked )
 end
 function test.test_UI_lock()
-	FB_options.unlocked = true
+	FB.uiUnlocked = true
 	FB.Command( "lock" )
-	assertFalse( FB_options.unlocked )
+	assertFalse( FB.uiUnlocked )
 end
 function test.test_UI_uireset()
 	FB_Frame.points = { { "BOTTOM" } }

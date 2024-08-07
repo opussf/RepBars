@@ -319,7 +319,7 @@ function FB.UIReset()
 	FB.XHFrame()
 end
 function FB.OnDragStart()
-	if FB_options.unlocked then
+	if FB.uiUnlocked then
 		FB_Frame:StartMoving()
 	end
 end
@@ -350,8 +350,9 @@ FB.CommandList = {
 		["help"] = {"","Prints Status"},
 	},
 	["lock"] = {
-		["func"] = function() FB_options.unlocked = not FB_options.unlocked
-				FB.Print( FB_options.unlocked and "UI unlocked" or "UI locked" )
+		["func"] = function() FB.uiUnlocked = not FB.uiUnlocked
+				FB.Print( FB.uiUnlocked and "UI unlocked" or "UI locked" )
+				FB_Frame:SetMovable(FB.uiUnlocked and true or false)
 			end,
 		["help"] = {"","Toggle display lock."},
 	},
