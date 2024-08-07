@@ -57,6 +57,7 @@ function FB.OnLoad()
 	-- COMBAT_TEXT_UPDATE( messageType, faction, amount )
 	FB.sessionStart = time()
 	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
+	-- FB_Frame:RegisterEvent( "UPDATE_FACTION" )  -- any faction gets changed.
 	-- UPDATE_FACTION
 	for _,ts in pairs( FB.timeFrames ) do
 		FB.maxTrack = max( FB.maxTrack, ts )
@@ -71,6 +72,16 @@ function FB.OnUpdate( arg1 )
 	end
 end
 -- Events
+-- function FB.UPDATE_FACTION( ... )
+-- 	a, b, c = ...
+-- 	FB.Print( "Update_Faction( <table>, "..(b or "nil")..", "..(c or "nil")..")" )
+-- 	FB.a = a
+-- 	-- if a[0] then
+-- 		-- for k, v in pairs( a[0] ) do
+-- 			-- FB.Print( "a."..k.."="..v )
+-- 		-- end
+-- 	-- end
+-- end
 function FB.VARIABLES_LOADED()
 	FB_Frame:UnregisterEvent( "VARIABLES_LOADED" )
 	FB.Print( "Loaded version: "..FB_MSG_VERSION )
