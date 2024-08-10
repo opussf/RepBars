@@ -45,5 +45,10 @@ With all the options turned on, your display will look like:
 - [ ] #2 Option to hide in combat (to free up the screen)
 - [ ] #3 Configuration option for width
 - [ ] Option to auto scale time frame to show last known faction change
+- [ ] Option to only show text on mouse over.
+- [ ] Option to allow the user to auto-anchor the addon
+- [ ] Option to change size of bars
+- [ ] Configuration option for width
+^^^ Imagine a very brief view of the bars.
 
 
