@@ -1,13 +1,31 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  $Date:$
--- Revision:  @VERSION@
+-- Date    :  August 6 2024
+-- Revision:  9.4.3-11-ga7a1da8
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
 -- Most are only stubbed enough to pass the tests
 -- This is not intended to replace WoWBench, but to provide a stub structure for
 --     automated unit tests.
+-- Setup:
+-- * Create test.lua  - Add #!/usr/bin/env lua
+-- * require "wowTest"
+-- * set test.outFileName to an ouput.xml file
+-- * Parse the TOC - ParseTOC( "../src/sonthing.toc" )
+-- * Setup any 'Normal Frames'
+
+settings = {
+}
+actionLog = {
+}
+-- append actions to the log to track actions that may not have an other sideeffects.
+-- record the function calls
+-- [1] = "DoEmote(....)""
+chatLog = {
+-- append chat output here
+-- [1] = { ["msg"] = "ChatOutput", ["channel"] = "where", [<other parameters>] = <values> }
+}
 
 local itemDB = {
 }
@@ -28,6 +46,8 @@ myCopper = 0
 -- set one of these to the number of people in the raid or party to reflect being in group or raid.
 -- roster should be an array for GetRaidRosterInfo
 myParty = { ["group"] = nil, ["raid"] = nil, ["roster"] = {} }
+playerRange = {}  -- { ["party1"] = <yards> }
+dungeonDifficultyLookup = { [34] = "Timewalking" }
 myGuild = { ["name"] = "Test Guild", }
 -- set myGuild = {} to simulate not in a guild
 outMail = {}
@@ -39,16 +59,23 @@ onCursor = {}
 globals = {}
 accountExpansionLevel = 4   -- 0 to 5
 -- registeredPrefixes - populated by the RegisterAddonMessagePrefix( prefix )
+unitSpeeds = { ["player"] = 0 }
+
+myStatistics = {
+	[60] = 42  -- 60 = deaths
+}
+myLocale = "enUS"
 
 registeredPrefixes = {}
 
 SlotListMap={ "HeadSlot","NeckSlot","ShoulderSlot","ShirtSlot","ChestSlot","WaistSlot","LegsSlot",
 		"FeetSlot", "WristSlot", "HandsSlot", "Finger0Slot","Finger1Slot","Trinket0Slot","Trinket1Slot",
-		"BackSlot","MainHandSlot","SecondaryHandSlot","RangedSlot","TabardSlot", "Bag0Slot", "Bag1Slot",
+		"BackSlot", "MainHandSlot","SecondaryHandSlot","RangedSlot","TabardSlot", "Bag0Slot", "Bag1Slot",
 		"Bag2Slot", "Bag3Slot",
 }
 myGear = {} -- items that are equipped in the above slots, index matching
 Items = {
+	["6948"] = {["name"] = "Hearthstone", ["link"] = "|cffffffff|Hitem:6948::::::::70:258:::::::::|h[Hearthstone]|h|r", ["texture"] = ""},
 	["7073"] = {["name"] = "Broken Fang", ["link"] = "|cff9d9d9d|Hitem:7073:0:0:0:0:0:0:0:80:0:0|h[Broken Fang]|h|r", ["texture"] = ""},
 	["6742"] = {["name"] = "UnBroken Fang", ["link"] = "|cff9d9d9d|Hitem:6742:0:0:0:0:0:0:0:80:0:0|h[UnBroken Fang]|h|r", ["texture"] = ""},
 	["22261"] = {["name"] = "Love Fool", ["link"] = "|cff9d9d9d|Hitem:22261:0:0:0:0:0:0:0:80:0:0|h[Love Fool]|h|r", ["texture"] = ""},
@@ -92,14 +119,14 @@ TaxiNodes = {
 	{["name"] = "Ironforge", ["type"] = "NONE", ["hops"] = 1, ["cost"]=1000},
 }
 Currencies = {
-	["1"] = { ["name"] = "Currency Token Test Token 4", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = false, ["link"] = "|cffffffff|Hcurrency:1|h[Currency Token Test Token 4]|h|r"},
-	["384"] = { ["name"] = "Dwarf Archaeology Fragment", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 200, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:384:0:0:0:0:0:0:0:80:0:0|h[Dwarf Archaeology Fragment]|h|r"},
-	["390"] = { ["name"] = "Conquest", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["392"] = { ["name"] = "Honor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["395"] = { ["name"] = "Justice",  ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["396"] = { ["name"] = "Valor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
-	["402"] = { ["name"] = "Ironpaw Token", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:402:0:0:0:0:0:0:0:80:0:0|h[Ironpaw Token]|h|r"},
-	["703"] = { ["name"] = "Fictional Currency", ["texturePath"] = "", ["weeklyMax"] = 1000, ["totalMax"] = 4000, isDiscovered = true, ["link"] = "|cffffffff|Hcurrency:703|h[Fictional Currency]|h|r"},
+	[1] = { ["name"] = "Currency Token Test Token 4", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = false, ["link"] = "|cffffffff|Hcurrency:1|h[Currency Token Test Token 4]|h|r"},
+	[384] = { ["name"] = "Dwarf Archaeology Fragment", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 200, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:384:0:0:0:0:0:0:0:80:0:0|h[Dwarf Archaeology Fragment]|h|r"},
+	[390] = { ["name"] = "Conquest", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[392] = { ["name"] = "Honor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[395] = { ["name"] = "Justice",  ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[396] = { ["name"] = "Valor",    ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = ""},
+	[402] = { ["name"] = "Ironpaw Token", ["texturePath"] = "", ["weeklyMax"] = 0, ["totalMax"] = 0, isDiscovered = true, ["link"] = "|cff9d9d9d|Hcurrency:402:0:0:0:0:0:0:0:80:0:0|h[Ironpaw Token]|h|r"},
+	[703] = { ["name"] = "Fictional Currency", ["texturePath"] = "", ["weeklyMax"] = 1000, ["totalMax"] = 4000, isDiscovered = true, ["link"] = "|cffffffff|Hcurrency:703|h[Fictional Currency]|h|r"},
 }
 ArchaeologyCurrencies = {"999",}
 MerchantInventory = {
@@ -110,7 +137,7 @@ MerchantInventory = {
 	{["id"] = "49927", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1,
 		["currencies"] = {{["id"] = "49916", ["type"] = "item", ["quantity"] = 1},}},  -- Lovely Charm Bracelet
 	{["id"] = "74661", ["cost"] = 0, ["quantity"] = 1, ["isUsable"] = 1,
-		["currencies"] = {{["id"] = "402", ["type"] = "currency", ["quantity"] = 1},}},
+		["currencies"] = {{["id"] = 402, ["type"] = "currency", ["quantity"] = 1},}},
 	{["id"] = "85216", ["cost"] = 2500, ["quantity"] = 1, ["isUsable"] = nil},
 }
 TradeSkillItems = {
@@ -165,71 +192,127 @@ Achievements = {
 		["isGuildAch"] = false,
 		["wasEarnedByMe"] = false,
 		["earnedBy"] = ""
+	},
+	[5738] = {
+		["name"] = "Deadmines",
+		["points"] = 10,
+		["value"] = "6",
+
+
 	}
+
+	--[[return id, achiveInfo['name'], achiveInfo['points'], achiveInfo['completed'], achiveInfo['month'], achiveInfo['day'], achiveInfo['year'],
+		achiveInfo['description'], achiveInfo['flags'], achiveInfo['icon'], achiveInfo['rewardText'], achiveInfo['isGuildAch'],
+		achiveInfo['wasEarnedByMe'], achiveInfo['earnedBy']
+		]]
 }
 -- EquipmentSets is an array (1 based numeric key table)
 EquipmentSets = {
 	{["name"] = "testSet", ["icon"] = "icon", ["items"] = {[1] = "113596"},},
 }
+-- Instance variables
+LE_PARTY_CATEGORY_HOME = 1
+LE_PARTY_CATEGORY_INSTANCE = 2
 -- WowToken
 TokenPrice = 123456 -- 12G 34S 45C
 --- Factions
-globals.FACTION_STANDING_LABEL1 = "Hated"
-globals.FACTION_STANDING_LABEL2 = "Hostile"
-globals.FACTION_STANDING_LABEL3 = "Unfriendly"
-globals.FACTION_STANDING_LABEL4 = "Neutral"
-globals.FACTION_STANDING_LABEL5 = "Friendly"
-globals.FACTION_STANDING_LABEL6 = "Honored"
-globals.FACTION_STANDING_LABEL7 = "Revered"
-globals.FACTION_STANDING_LABEL8 = "Exalted"
+FACTION_STANDING_LABEL1 = "Hated"
+FACTION_STANDING_LABEL2 = "Hostile"
+FACTION_STANDING_LABEL3 = "Unfriendly"
+FACTION_STANDING_LABEL4 = "Neutral"
+FACTION_STANDING_LABEL5 = "Friendly"
+FACTION_STANDING_LABEL6 = "Honored"
+FACTION_STANDING_LABEL7 = "Revered"
+FACTION_STANDING_LABEL8 = "Exalted"
+FACTION_STANDING_INCREASED = "Reputation with %s increased by %d"
+FACTION_STANDING_DECREASED = "Reputation with %s decreased by %d"
+FACTION_STANDING_INCREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s increased by %d"
+FACTION_STANDING_DECREASED_ACCOUNT_WIDE = "Your Warband's reputation with %s decreased by %d"
 
---			TT.fName, TT.fDescription, TT.fStandingId, TT.fBottomValue, TT.fTopValue, TT.fEarnedValue, TT.fAtWarWith,
---					TT.fCanToggleAtWar, TT.fIsHeader, TT.fIsCollapsed, TT.fIsWatched, TT.isChild, TT.factionID,
---					TT.hasBonusRepGain, TT.canBeLFGBonus = GetFactionInfo(factionIndex);
+COMBATLOG_OBJECT_AFFILIATION_OUTSIDER = 8
+COMBATLOG_XPGAIN_FIRSTPERSON = "%s dies, you gain %d experience."
+COMBATLOG_XPGAIN_EXHAUSTION1 = "%s dies, you gain %d experience. (%s exp %s bonus)"
+
+--[[
+				{ Name = "factionID", Type = "number", Nilable = false },
+				{ Name = "name", Type = "cstring", Nilable = false },
+				{ Name = "description", Type = "cstring", Nilable = false },
+				{ Name = "reaction", Type = "luaIndex", Nilable = false },
+				{ Name = "currentReactionThreshold", Type = "number", Nilable = false },
+				{ Name = "nextReactionThreshold", Type = "number", Nilable = false },
+				{ Name = "currentStanding", Type = "number", Nilable = false },
+				{ Name = "atWarWith", Type = "bool", Nilable = false },
+				{ Name = "canToggleAtWar", Type = "bool", Nilable = false },
+				{ Name = "isChild", Type = "bool", Nilable = false },
+				{ Name = "isHeader", Type = "bool", Nilable = false },
+				{ Name = "isHeaderWithRep", Type = "bool", Nilable = false },
+				{ Name = "isCollapsed", Type = "bool", Nilable = false },
+				{ Name = "isWatched", Type = "bool", Nilable = false },
+				{ Name = "hasBonusRepGain", Type = "bool", Nilable = false },
+				{ Name = "canSetInactive", Type = "bool", Nilable = false },
+				{ Name = "isAccountWide", Type = "bool", Nilable = false },
+]]
 FactionInfo = {
-	{ ["name"] = "Classic", ["description"] = "", ["standingID"] = 4, ["bottomValue"] = 0, ["topValue"] = 3000, ["earnedValue"] = 0,
-		["atWarWith"] = false, ["canToggleAtWar"] = true, ["isHeader"] = true, ["isCollapsed"] = false, ["hasRep"] = false,
-		["isWatched"] = false, ["isChild"] = false, ["factionID"] = 1118, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	{
+		["factionID"] =   72, ["name"] = "Stormwind", ["description"] = "", ["reaction"] = 7, ["currentReactionThreshold"] = 21000,
+		["nextReactionThreshold"] = 42000, ["currentStanding"] = 33397, ["atWarWith"] = false, ["canToggleAtWar"] = false,
+		["isChild"] = true, ["isHeader"] = false, ["isHeaderWithRep"] = false, ["isCollapsed"] = false, ["isWatched"] = true,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = false,
 	},
-	{ ["name"] = "Darkmoon Faire", ["description"] = "description and stuff",
-		["standingID"] = 5, ["bottomValue"] = 3000, ["topValue"] = 9000, ["earnedValue"] = 7575,
-		["atWarWith"] = false, ["canToggleAtWar"] = false, ["isHeader"] = false, ["isCollapsed"] = false, ["hasRep"] = false,
-		["isWatched"] = false, ["isChild"] = true, ["factionID"] = 909, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	{
+		["factionID"] =  469, ["name"] = "Alliance", ["description"] = "", ["reaction"] = 6, ["currentReactionThreshold"] = 9000,
+		["nextReactionThreshold"] = 21000, ["currentStanding"] = 10390, ["atWarWith"] = false, ["canToggleAtWar"] = false,
+		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = false, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = false,
 	},
-	{ ["name"] = "Alliance", ["description"] = "", ["standingID"] = 6, ["bottomValue"] = 9000, ["topValue"] = 21000, ["earnedValue"] = 10390,
-		["atWarWith"] = false, ["canToggleAtWar"] = false, ["isHeader"] = true, ["isCollapsed"] = false, ["hasRep"] = false,
-		["isWatched"] = false, ["isChild"] = false, ["factionID"] = 469, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	{
+		["factionID"] =  909, ["name"] = "Darkmoon Faire", ["description"] = "description and stuff", ["reaction"] = 5, ["currentReactionThreshold"] = 3000,
+		["nextReactionThreshold"] = 9000, ["currentStanding"] = 7575, ["atWarWith"] = false, ["canToggleAtWar"] = false,
+		["isChild"] = true, ["isHeader"] = false, ["isHeaderWithRep"] = false, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = false,
 	},
-	{ ["name"] = "Stormwind", ["description"] = "", ["standingID"] = 7, ["bottomValue"] = 21000, ["topValue"] = 42000, ["earnedValue"] = 33397,
-		["atWarWith"] = false, ["canToggleAtWar"] = false, ["isHeader"] = false, ["isCollapsed"] = false, ["hasRep"] = false,
-		["isWatched"] = true, ["isChild"] = true, ["factionID"] = 72, ["hasBonusRepGain"] = false, ["canBeLFGBonus"] = false,
+	{
+		["factionID"] = 1118, ["name"] = "Classic", ["description"] = "", ["reaction"] = 4, ["currentReactionThreshold"] = 0,
+		["nextReactionThreshold"] = 4000, ["currentStanding"] = 0, ["atWarWith"] = false, ["canToggleAtWar"] = true,
+		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = true, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = false,
+	},
+	{
+		["factionID"] = 2001, ["name"] = "Find my Name", ["description"] = "", ["reaction"] = 4, ["currentReactionThreshold"] = 0,
+		["nextReactionThreshold"] = 4000, ["currentStanding"] = 0, ["atWarWith"] = false, ["canToggleAtWar"] = true,
+		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = true, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = true,
+	},
+	{
+		["factionID"] = 1282, ["name"] = "Fish Fellrend", ["description"] = "", ["reaction"] = 5, ["currentReactionThreshold"] = 0,
+		["nextReactionThreshold"] = 4000, ["currentStanding"] = 0, ["atWarWith"] = false, ["canToggleAtWar"] = true,
+		["isChild"] = false, ["isHeader"] = true, ["isHeaderWithRep"] = true, ["isCollapsed"] = false, ["isWatched"] = false,
+		["hasBonusRepGain"] = false, ["canSetInactive"] = false, ["isAccountWide"] = true,
 	},
 }
 --Auras
 -- IIRC (Look this up) Auras are index based, use an index based system
 -- ["unit"] = { [1] = { ["Fishing"] = true }}
 UnitAuras = {}
---UnitAuras = {["player"] = { { ["Fishing"] = true } } }
+--UnitAuras = {["player"] = { { ["name"] = "Fishing" } } }
 -- 'support' code for setting / clearing auras
 function wowSetAura( unit, auraName )
 	if (UnitAuras[unit]) then
 		for i, auras in pairs( UnitAuras[unit] ) do
-			if ( auras[auraName] ) then
+			if( auras.name == auraName ) then
 				return
 			end
 		end
-		table.insert( UnitAuras[unit], { { [auraName] = true } } )
+		table.insert( UnitAuras[unit], { { ["name"] = auraName } } )
 	else  -- unknown unit
-		UnitAuras[unit] = { { [auraName] = true } }
+		UnitAuras[unit] = { { ["name"] = auraName } }
 	end
 end
 function wowClearAura( unit, auraName )
 	if UnitAuras[unit] then
 		for i, aura in pairs( UnitAuras[unit] ) do
-			for aname in pairs( aura ) do
-				if (aname == auraName) then
-					UnitAuras[unit][i] = nil
-				end
+			if( aura.name == auraName ) then
+				UnitAuras[unit][i] = nil
 			end
 		end
 		if (#UnitAuras[unit] == 0) then
@@ -239,6 +322,7 @@ function wowClearAura( unit, auraName )
 end
 
 -- WOW's function renames
+format = string.format
 strmatch = string.match
 strfind = string.find
 strsub = string.sub
@@ -251,6 +335,7 @@ min = math.min
 abs = math.abs
 random = math.random
 tinsert = table.insert
+unpack = table.unpack
 
 bit = {}
 function bit.lshift( x, by )
@@ -286,13 +371,17 @@ function bit.bnot( n )  -- bitwise not
 	end
 	return c
 end
+-- Sound Kit
+SOUNDKIT = {
+	ALARM_CLOCK_WARNING_1 = 18871,
+}
 
 -- WOW's functions
 function getglobal( globalStr )
 	-- set the globals table to return what is needed from the 'globals'
 	return globals[ globalStr ]
 end
-function hooksecurefunc(externalFunc, internalFunc)
+function hooksecurefunc( externalFunc, internalFunc )
 end
 function strsplit( delim, subject, pieces )
 	-- delim is a string that defines all the bytes that may split the string
@@ -338,38 +427,131 @@ ITEM_BIND_ON_PICKUP="Binds when picked up"
 
 -- WOW's frames
 Frame = {
+		["__isShown"] = true,
 		["Events"] = {},
-		["Hide"] = function() end,
-		["Show"] = function() end,
-		["IsShown"] = function() return(true) end,
+		["points"] = {},
+		["Hide"] = function( self ) self.__isShown = false; end,
+		["Show"] = function( self ) self.__isShown = true; end,
+		["IsVisible"] = function( self ) return( self.__isShown ) end,
 		["RegisterEvent"] = function(self, event) self.Events[event] = true; end,
-		["SetPoint"] = function() end,
+		["SetPoint"] = function(self, ... ) table.insert( self.points, {...} ); end,
 		["UnregisterEvent"] = function(self, event) self.Events[event] = nil; end,
 		["GetName"] = function(self) return self.framename end,
 		["SetFrameStrata"] = function() end,
+		["width"] = 100,
+		["height"] = 100,
 		["SetWidth"] = function(self, value) self.width = value; end,
+		["GetWidth"] = function(self) return( self.width ); end,
 		["SetHeight"] = function(self, value) self.height = value; end,
+		["GetHeight"] = function(self) return( self.height ); end,
+		["SetMovable"] = function(self, value) self.movable = value end,
 		["CreateFontString"] = function(self, ...) return(CreateFontString(...)) end,
+		["SetSize"] = function(self, x, y) end,
+		["ClearAllPoints"] = function(self) self.points={}; end,
+		["GetPoint"] = function(self) end,
+		["GetNumPoints"] = function(self) end,
 
-		["SetMinMaxValues"] = function() end,
-		["SetValue"] = function() end,
+		["SetMinMaxValues"] = function(self, min, max) self.min=min; self.max=max; end,
+		["SetValue"] = function(self, value) self.value=value end,
 		["SetStatusBarColor"] = function() end,
+		["SetScript"] = function(self, event, func) end,
+		["SetAttribute"] = function() end,
 
+		["SetChecked"] = function() end,
+		["SetText"] = function(self, textIn) self.textValue = textIn; end,
+		["GetText"] = function(self) return( self.textValue ); end,
+		["SetFrameLevel"] = function(self) end,
+		["SetAlpha"] = function(self, value) end,
 }
 FrameGameTooltip = {
+		["HookScript"] = function( self, callback ) end,
 		["GetName"] = function(self) return self.name end,
+		["GetUnit"] = function(self) return self.name end,
 		["SetOwner"] = function(self, newOwner) end, -- this is only for tooltip frames...
 		["ClearLines"] = function(self) end, -- this is only for tooltip frames...
 		["SetHyperlink"] = function(self, hyperLink) end, -- this is only for tooltip frames...
+		["AddLine"] = function(self, line) self.line = line end,
 		["init"] = function(frameName)
 			_G[frameName.."TextLeft2"] = CreateFontString(frameName.."TextLeft2")
 			_G[frameName.."TextLeft3"] = CreateFontString(frameName.."TextLeft3")
 			_G[frameName.."TextLeft4"] = CreateFontString(frameName.."TextLeft4")
 		end,
 }
+        -- None = 0
+        -- Warrior = 1
+        -- Paladin = 2
+        -- Hunter = 3
+        -- Rogue = 4
+        -- Priest = 5
+        -- DeathKnight = 6
+        -- Shaman = 7
+        -- Mage = 8
+        -- Warlock = 9
+        -- Monk = 10
+        -- Druid = 11
+        -- Demon Hunter = 12
+Units = {
+	["player"] = {
+		["class"] = "Warlock",
+		["classCAPS"] = "WARLOCK",
+		["classIndex"] = 9,
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "testPlayer",
+		["race"] = "Human",
+		["realm"] = "Test Realm",
+		["realmRelationship"] = 1,  -- same realm
+		["sex"] = 3,
+		["currentHealth"] = 100000,
+		["maxHealth"] = 123456,
+	},
+	["sameRealmUnit"] = {
+		["class"] = "Warrior",
+		["classCAPS"] = "WARRIOR",
+		["classIndex"] = 1,
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "sameRealmPlayer",
+		["race"] = "Gnome",
+		["realm"] = "testPlayer",
+		["realmRelationship"] = 1,
+		["sex"] = 2,
+	},
+	["coalescedRealmUnit"] = {
+		["class"] = "Monk",
+		["classCAPS"] = "MONK",
+		["classIndex"] = 10,
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "coalescedUnit",
+		["race"] = "Pandarian",
+		["realm"] = "coalescedRealm",
+		["realmRelationship"] = 2,
+	},
+	["connectedRealmUnit"] = {
+		["class"] = "Mage",
+		["classCAPS"] = "MAGE",
+		["classIndex"] = 8,
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "connectedUnit",
+		["realm"] = "connectedRealm",
+		["realmRelationship"] = 3,
+	},
+	["mouseover"] = {
+		["class"] = "Priest",
+		["classCAPS"] = "PRIEST",
+		["classIndex"] = 99999,  -- find this out
+		["faction"] = {"Alliance", "Alliance"},
+		["name"] = "mousename",
+		["race"] = "Dwarf",
+		["realm"] = "mouserealm",
+		["sex"] = 1,
+	},
+
+}
 function CreateFrame( frameType, frameName, parentFrame, inheritFrame )
 --	print("CreateFrame: needing a new frame of type: "..(frameType or "nil"))
-	newFrame = Frame  -- deep copy of this?
+	newFrame = {}
+	for k,v in pairs( Frame ) do
+		newFrame[k] = v
+	end
 	if frameType and _G["Frame"..frameType] then  -- construct the name of the table to pull from, use _G to reference it.
 		for k, f in pairs(_G["Frame"..frameType]) do  -- add the methods in the sub frame to the returned frame
 			if k == "init" then  -- check to see if the key is 'init', which is a function to run when creating the Frame
@@ -383,8 +565,7 @@ function CreateFrame( frameType, frameName, parentFrame, inheritFrame )
 	--http://www.wowwiki.com/API_CreateFrame
 	return newFrame
 end
-
-function CreateFontString(name,...)
+function CreateFontString( name, ... )
 	--print("Creating new FontString: "..name)
 	FontString = {}
 	--	print("1")
@@ -398,24 +579,14 @@ function CreateFontString(name,...)
 	--print("FontString made?")
 	return FontString
 end
-
-function CreateStatusBar(name,...)
+function CreateStatusBar( name, ... )
 	StatusBar = {}
 	for k,v in pairs(Frame) do
 		StatusBar[k] = v
 	end
 	StatusBar.name=name
-
-	StatusBar["SetMinMaxValues"] = function() end;
-	StatusBar["Show"] = function() end;
-
 	return StatusBar
 end
-
-Slider = {
-		["GetName"] = function() return ""; end,
-		["SetText"] = function(text) end,
-}
 function CreateSlider( name, ... )
 	Slider = {}
 	for k,v in pairs(Frame) do
@@ -423,17 +594,49 @@ function CreateSlider( name, ... )
 	end
 	Slider.name=name
 	Slider[name.."Text"] = CreateFontString(name.."Text")
-	Slider["GetName"] = function(self) return self.name; end
-	Slider["SetText"] = function(text) end
 	return Slider
+end
+CheckButton = {
+		["SetChecked"] = function(self,value) self.isChecked=value; end,
+}
+function CreateCheckButton( name, ... )
+	me = {}
+	for k,v in pairs(CheckButton) do
+		me[k] = v
+	end
+	me.name = name
+	me[name.."Text"] = CreateFontString(name.."Text")
+	return me
+end
+EditBox = {
+		["SetText"] = function(self,text) self.text=text; end,
+		["SetCursorPosition"] = function(self,pos) self.cursorPosition=pos; end,
+
+}
+function CreateEditBox( name, ... )
+	me = {}
+	for k,v in pairs(EditBox) do
+		me[k] = v
+	end
+	me.name = name
+	return me
 end
 
 function ChatFrame_AddMessageEventFilter()
 end
 
 -- WOW's resources
-DEFAULT_CHAT_FRAME={ ["AddMessage"] = print, }
-UIErrorsFrame={ ["AddMessage"] = print, }
+DEFAULT_CHAT_FRAME={ ["AddMessage"] = function( self, msg )
+		table.insert( chatLog,
+			{ ["msg"] = msg, ["chatType"] = "DEFAULT_CHAT_FRAME", ["language"] = "", ["channel"] = "DEFAULT_CHAT_FRAME" }
+		)
+	end, }
+UIErrorsFrame={ ["AddMessage"] = function( self, msg )
+		table.insert( chatLog,
+			{ ["msg"] = msg, ["chatType"] = "UIErrorsFrame", ["language"] = "", ["channel"] = "UIErrorsFrame" }
+		)
+	end, }
+WeeklyRewardsFrame = CreateFrame()
 
 -- stub some external API functions (try to keep alphabetical)
 function BuyMerchantItem( index, quantity )
@@ -451,6 +654,21 @@ function CheckInbox()
 	-- http://www.wowwiki.com/API_CheckInbox
 	-- Fires the MAIL_INBOX_UPDATE event when data is available
 	-- @TODO - Write this
+end
+function CheckInteractDistance( unit, distIndex )
+	-- https://wowwiki.fandom.com/wiki/API_CheckInteractDistance
+	-- unit - string: unit lookupstr
+	-- distIndex - int: 1= inspect (28 yards), 2= Trade (11.11 yards), 3= Duel (9.9 yards), 4= Follow (28 yards)
+	-- returns: bool (1nil)
+	-- uses:  playerRange = {}  -- { ["party1"] = <yards> }
+	-- leaving blank is the same as being out of range
+	rangeIndex = { 28, 11.11, 9.9, 28 }
+	distIndex = tonumber( distIndex )
+	if( playerRange[unit] and rangeIndex[distIndex] ) then
+		if( playerRange[unit] <= rangeIndex[distIndex] ) then
+			return true
+		end
+	end
 end
 function ClearCursor()
 	onCursor = {}
@@ -473,6 +691,18 @@ function CloseMail()
 	-- @TODO - Write this
 end
 ]]
+function InCombatLockdown()
+	return false
+end
+function CombatLogGetCurrentEventInfo()
+	-- return much the same info as used to be passed to the LOG_UNFILTERD event
+	-- set CombatLogCurrentEventInfo = {} to return specific data.
+	-- timestamp,event,hideCaster,srcGUID,srcName,srcFlags,srcFlags2,
+	--		targetGUID,targetName,targetFlags,targetFlags2,spellId = CombatLogGetCurrentEventInfo()
+
+	return unpack( CombatLogCurrentEventInfo )
+
+end
 function CombatTextSetActiveUnit( who )
 	-- http://www.wowwiki.com/API_CombatTextSetActiveUnit
 	-- @TODO - Write this
@@ -484,7 +714,10 @@ function CursorHasItem()
 		return true
 	end
 end
-function DoEmote( emote )
+function DoEmote( emote, target )
+	table.insert( actionLog,
+			"DoEmote( "..(emote or "nil")..", "..(target or "nil").." )"
+	)
 	-- not tested as the only side effect is the character doing an emote
 end
 function EquipItemByName( itemIn, slotIDIn )
@@ -604,7 +837,25 @@ function GetAchievementNumCriteria( achievementID )
 		return #Achievements[achievementID]["criteria"]
 	end
 end
-function GetAddOnMetadata(addon, field)
+function GetCurrentRegion()
+	-- @TODO: find region info
+	return 1
+end
+function GetSpecialization()
+	return 2
+end
+function GetStatistic( statID )
+	-- https://wow.gamepedia.com/API_GetStatistic
+
+	return Achievements[statID].value
+end
+function GetComparisonStatistic( achievementID )
+	-- https://wowwiki.fandom.com/wiki/API_GetComparisonStatistic
+	-- achievementID: integer - ID of the achievement
+	-- returns: string - the value of the requested statistic
+	return Achievements[achievementID].value
+end
+function GetAddOnMetadata( addon, field )
 	-- returns addonData[field] for 'addon'
 	-- local addonData = { ["version"] = "1.0", }
 	return addonData[field]
@@ -626,22 +877,18 @@ function GetCategoryNumAchievements( catID )
 	-- numIncomplete: Number of incomplete achievements
 	return 5,0,5
 end
-function GetCoinTextureString( copperIn, fontHeight )
--- simulates the Wow function:  http://www.wowwiki.com/API_GetCoinTextureString
--- fontHeight is ignored for now.
-	if copperIn then
-		-- cannot return exactly what WoW does, but can make a simular string
-		local gold = math.floor(copperIn / 10000); copperIn = copperIn - (gold * 10000)
-		local silver = math.floor(copperIn / 100); copperIn = copperIn - (silver * 100)
-		local copper = copperIn
-		return( (gold and gold.."G ")..
-				(silver and silver.."S ")..
-				(copper and copper.."C"))
-	end
+
+C_Container = {}
+C_Container.SortBagsRightToLeft = false -- this is normal
+function C_Container.GetContainerItemInfo( bagId, slotId )
 end
-function GetContainerItemLink( bagId, slotId )
+function C_Container.GetContainerItemLink( bagId, slotId )
 end
-function GetContainerNumFreeSlots( bagId )
+function C_Container.GetBagSlotFlag( bagId, filterFlagCheck )
+	-- returns true if the filterFlagCheck matches the bag's filterFlag
+	return true
+end
+function C_Container.GetContainerNumFreeSlots( bagId )
 	-- http://www.wowwiki.com/API_GetContainerNumFreeSlots
 	-- http://www.wowwiki.com/BagType
 	-- returns numberOfFreeSlots, BagType
@@ -654,7 +901,7 @@ function GetContainerNumFreeSlots( bagId )
 		return 0, 0
 	end
 end
-function GetContainerNumSlots( bagId )
+function C_Container.GetContainerNumSlots( bagId )
 	-- http://wowwiki.wikia.com/wiki/API_GetContainerNumSlots
 	-- returns the number of slots in the bag, or 0 if no bag
 	if bagInfo[bagId] then
@@ -663,25 +910,10 @@ function GetContainerNumSlots( bagId )
 		return 0
 	end
 end
-function GetCurrencyInfo( id ) -- id is integer, currencyLink, currencyString
-	-- integer, link, "currency:###"
-	-- http://wowprogramming.com/docs/api/GetCurrencyInfo
-	-- returns name, amount, texturePath, earnedThisWeek, weeklyMax, totalMax, isDiscovered
-	id = tostring(id)
-	if Currencies[id] then
-		local c = Currencies[id]
-		return c["name"], (myCurrencies[id] or 0), "", 0, c["weeklyMax"], c["totalMax"], true
-	end
+function C_Container.GetSortBagsRightToLeft()
+	return C_Container.SortBagsRightToLeft
 end
-function GetCurrencyLink( id )
-	id = tostring(id)
-	if Currencies[id] then
-		return Currencies[id].link
-	end
-end
-function GetCurrencyListSize()
-	-- @TODO
-	return #Currencies
+function C_Container.UseContainerItem( bagId, slotId )
 end
 function GetEquipmentSetItemIDs( setName )
 	-- http://wowprogramming.com/docs/api/GetEquipmentSetItemIDs
@@ -710,11 +942,12 @@ function GetEquipmentSetInfoByName( nameIn )
 		end
 	end
 end
-function GetFactionInfo( index )
-	-- http://wowprogramming.com/docs/api/GetFactionInfo
-	local f = FactionInfo[ index ]
-	return f.name, f.description, f.standingID, f.bottomValue, f.topValue, f.earnedValue, f.atWarWith, f.canToggleAtWar,
-			f.isHeader, f.isCollapsed, f.hasRep, f.isWatched, f.isChild, f.factionID, f.hasBonusRepGain, f.canBeLFGBonus
+function GetGuildInfo( unitID )
+	-- http://wowprogramming.com/docs/api/GetGuildInfo
+	-- Returns: guildName, guildRankName, guildRankIndex
+	if myGuild and myGuild.name then
+		return myGuild.name, "Rank Name", 2
+	end
 end
 function GetHaste()
 	return 15.42345
@@ -751,7 +984,7 @@ function GetInventorySlotInfo( slotName )
 		end
 	end
 end
-function GetItemCount( itemID, includeBank )
+function GetItemCount( itemID, includeBank, includeUses, includeReagentBank, includeAccountBank )
 	-- print( itemID, myInventory[itemID] )
 	return myInventory[itemID] or 0
 end
@@ -762,6 +995,9 @@ function GetItemInfo( itemIn )
 	if Items[itemID] then
 		return Items[itemID].name, Items[itemID].link
 	end
+end
+function GetLocale()
+	return myLocale
 end
 function GetMastery()
 	return 21.3572
@@ -858,10 +1094,33 @@ Returns:
 ]]
 	return "Dwarf", "", 384, 0, 100, 200
 end
+function GetProfessions()
+	-- prof1, prof2, archaeology, fishing, cooking, firstAid = GetProfessions();
+	return 5, 6, 7, 8, 9
+end
+ProfessionInfo = {
+	[5] = { "prof1", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism prof1" },
+	[6] = { "prof2", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism prof2" },
+	[7] = { "Archaeology", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism Arch" },
+	[8] = { "Fishing", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism Fishing" },
+	[9] = { "Cooking", "icon", 75, 300, 3, 3, 3, 3, 3, 3, "Catacylism Cooking" },
+}
+function GetProfessionInfo( index )
+	--[[
+	name, icon, skillLevel, maxSkillLevel, numAbilities, spelloffset,
+    skillLine, skillModifier, specializationIndex,
+    specializationOffset = GetProfessionInfo(index)
+	]]
+	return unpack( ProfessionInfo[index] )
+end
 function GetNumEquipmentSets()
 	-- http://www.wowwiki.com/API_GetNumEquipmentSets
 	-- Returns 0,MAX_NUM_EQUIPMENT_SETS
 	return #EquipmentSets
+end
+function GetRepairAllCost()
+	-- Returns cost to repair all, and if can repair
+	return 5000, true  -- 50s and yes
 end
 function GetNumFactions()
 	-- returns number of factions
@@ -886,6 +1145,10 @@ function GetNumRoutes( nodeId )
 	-- returns numHops
 	return TaxiNodes[nodeId].hops
 end
+function GetNumSavedInstances()
+	-- @TODO: Research this
+	return 0
+end
 -- GetNumTradeSkills is deprecated
 --function GetNumTradeSkills( )
 --	-- returns number of lines in the tradeskill window to show
@@ -893,6 +1156,16 @@ end
 --	for _ in pairs( TradeSkillItems ) do count = count + 1 end
 --	return count
 --end
+function GetPlayerInfoByGUID( playerGUID )
+	-- http://wowprogramming.com/docs/api/GetPlayerInfoByGUID
+	-- localClass, englishClass, localRace, englishRace, gender, name, realm = GetPlayerInfoByGUID( playerGUID )
+	-- @TODO: Affirm this
+	return "Warlock", "Warlock", "Human", "Human", 3, "testPlayer", "Test Realm"
+end
+function GetQuestResetTime()
+	-- @TODO: Find out more about this
+	return 5
+end
 function GetRaidRosterInfo( raidIndex )
 	-- http://www.wowwiki.com/API_GetRaidRosterInfo
 	-- returns name, rank, subgroup, level, class, fileName, zone, online, isDead, role, isML
@@ -901,7 +1174,10 @@ function GetRaidRosterInfo( raidIndex )
 	end
 end
 function GetRealmName()
-	return "testRealm"
+	return "Test Realm"
+end
+function GetNormalizedRealmName()
+	return "TestRealm"
 end
 function GetSendMailItem( slot )
 	-- 1 <= slot <= ATTACHMENTS_MAX_SEND
@@ -916,6 +1192,9 @@ function GetSendMailMoney()
 end
 function GetSendMailPrice()
 	-- returns: amount (in copper) to send the mail
+end
+function GetStatistic( index )
+	return myStatistics[index]
 end
 function GetTradeSkillItemLink( index )
 	if TradeSkillItems[index] then
@@ -955,12 +1234,49 @@ end
 function GetTradeSkillRecipeLink( index )
 	return TradeSkillItems[index].elink
 end
+function GetUnitName( lookupStr )
+	lookupStr = string.lower( lookupStr )
+	-- return the player's UnitName if asking for "player"
+	if lookupStr == "player" then
+		return UnitName( lookupStr )
+	end
+	_, _, partyType, partyIndex = string.find( lookupStr, "(%S+)(%d+)" )
+	partyIndex = tonumber( partyIndex )
+	-- only return the indexed playername if the party type matches, and the index exists
+	if( myParty[partyType] and myParty.roster[partyIndex] ) then
+		return myParty.roster[partyIndex]
+	end
+end
+function GetUnitSpeed( lookupStr )
+	lookupStr = string.lower( lookupStr )
+
+	return (unitSpeeds[lookupStr])
+end
 --[[
 function HasNewMail()
+	-- @TODO: Research this
 	return true
 end
 ]]
+function GetWeeklyQuestResetTime()
+	-- @TODO: Research this
+	return 15
+end
+function GetXPExhaustion()
+	-- TODO:
+	return 3618
+end
 function InterfaceOptionsFrame_OpenToCategory()
+end
+function IsInGroup( groupType )
+	-- http://wowprogramming.com/docs/api/IsInGroup
+	-- LE_PARTY_CATEGORY_INSTANCE = 2  -- from /dump in client
+	groupType = groupType or 1
+	local groupTypes = { [1] = "party", [2] = "instance" }
+	key = groupTypes[groupType]
+
+	--print( "IsInGroup( "..(groupType or "NIL" ).." ) -->"..(key or "NIL") )
+	return( myParty[key] and 1 or nil )
 end
 function IsInGuild()
 	-- http://www.wowwiki.com/API_IsInGuild
@@ -968,14 +1284,46 @@ function IsInGuild()
 	return (myGuild and myGuild.name) and 1 or nil
 end
 function IsInInstance()
-	-- returns 1nil
-	return currentInstance and true or nil
+	-- https://wowwiki.fandom.com/wiki/API_IsInInstance
+	-- returns bool, string( arena | none | party | pvp | raid 		)
+	-- set myParty.string = true.  Only one should be set.
+	for partyType, _ in pairs( myParty ) do
+		if partyType ~= "roster" then -- "roster" is special.  Should probably move this someplace else....
+			return true, partyType
+		end
+	end
+	-- returns nil if not in instance
 end
 function IsInRaid()
 	-- http://www.wowwiki.com/API_IsInRaid
 	-- 1, nill boolean return of being in raid
 	-- myParty = { ["group"] = nil, ["raid"] = nil } -- set one of these to true to reflect being in group or raid.
 	return ( myParty["raid"] and 1 or nil )
+end
+function IsFlying()
+end
+function IsMounted()
+end
+function GetCursorInfo()
+end
+function GetInstanceInfo()
+	-- https://wowwiki.fandom.com/wiki/API_GetInstanceInfo
+	-- name, type, difficultyIndex, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceMapId, lfgID = GetInstanceInfo()
+	-- name is localized!
+	-- instanceMapId -- should probably be used for lookup.
+	-- @TODO refine these....
+	return "Deadmines", 1, 34, "", 5, 1, 0, 36, 0
+end
+function GetDifficultyInfo( diffInt )
+	return dungeonDifficultyLookup[diffInt]
+end
+function GetFramerate()
+	return 8
+end
+function IsResting()
+	return true
+end
+function LoadAddOn()
 end
 function NumTaxiNodes()
 	-- http://www.wowwiki.com/API_NumTaxiNodes
@@ -1070,6 +1418,13 @@ function RegisterAddonMessagePrefix( prefix )
 	-- Cannot be empty.
 	-- What does this do?  In a bigger system, it could allow random messages to be generated
 end
+function RepairAllItems( useGuild )
+	-- performs rapir, uses guild money if useGuild is true
+end
+function RequestTimePlayed()
+end
+function Screenshot( )
+end
 function SecondsToTime( secondsIn, noSeconds, notAbbreviated, maxCount )
 	-- http://www.wowwiki.com/API_SecondsToTime
 	-- formats seconds to a readable time  -- WoW omits seconds if 0 even if noSeconds is false
@@ -1128,7 +1483,30 @@ function SendChatMessage( msg, chatType, language, channel )
 	-- http://www.wowwiki.com/API_SendChatMessage
 	-- This could simulate sending text to the channel, in the language, and raise the correct event.
 	-- returns nil
+	-- append the parameters to chatLog
 	-- @TODO: Expand this
+
+	table.insert( chatLog,
+			{ ["msg"] = msg, ["chatType"] = chatType, ["language"] = language, ["channel"] = channel }
+	)
+
+	--print( string.format( "%s: %s", chatType, msg ) )
+end
+function SetAchievementComparisonUnit( lookupStr )
+	-- mostly does nothing...  Just allows INSPECT_ACHIEVEMENT_READY to happen,
+	-- and data to be gathered with:
+	-- GetComparisonStatistic( statisticID ) and GetAchievementInfo( statisticID )
+end
+function ClearAchievementComparisonUnit()
+	-- mostly does nothing...
+end
+function SetRaidTarget( target, iconID )
+	-- sets the raid icon ID on target
+end
+function BNSendWhisper( id, msg )
+	table.insert( chatLog,
+			{ ["msg"] = msg, ["chatType"] = "BNWhisper", ["language"] = "", ["channel"] = "BNWhisper" }
+	)
 end
 function TaxiNodeCost( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeCost
@@ -1142,46 +1520,50 @@ function TaxiNodeGetType( nodeId )
 	-- http://www.wowwiki.com/API_TaxiNodeGetType
 	return TaxiNodes[nodeId].type
 end
-function UnitAura( unit, auraName )
+function setUnitOnTaxi( valueIn )
+	settings.unitOnTaxi = valueIn
+end
+function UnitOnTaxi()
+	return settings.unitOnTaxi or false
+end
+function UnitAffectingCombat( unit )
+	return false
+end
+function UnitAura( unit, index, filter )
 	-- @TODO: Look this up to get a better idea of what this function does.
+	-- Returns the aura name
+	-- unit, [index] [,filter]
 	-- Returns True or nil
-	if (UnitAuras[unit]) then
-		for i, auras in pairs(UnitAuras[unit]) do
-			if auras[auraName] then
-				return true
-			end
-		end
+	if( UnitAuras[unit] and UnitAuras[unit][index] ) then
+		return UnitAuras[unit][index].name
 	end
-	--print("UnitAura did not find "..auraName)
 end
 function UnitClass( who )
-	local unitClasses = {
-		["player"] = "Warlock",
-	}
-	return unitClasses[who]
+	return Units[who].class, Units[who].classCAPS, Units[who].classIndex
+end
+function UnitGUID( who )
+	return "playerGUID"
 end
 function UnitHealthMax( who )
 	-- http://wowwiki.wikia.com/wiki/API_UnitHealth
-	local unitHealth = {
-		["player"] = {["current"] = 100000, ["max"] = 123456},
-	}
-	return unitHealth[who].max
+	return Units[who].maxHealth
 end
 function UnitFactionGroup( who )
 	-- http://www.wowwiki.com/API_UnitFactionGroup
-	local unitFactions = {
-		["player"] = {"Alliance", "Alliance"}
-	}
-	return unpack( unitFactions[who] )
+	return unpack( Units[who].faction )
 end
 function UnitIsDeadOrGhost( who )
-
+end
+function UnitIsPVP( who )
+end
+function UnitLevel( who )
+	local unitLevels = {
+		["player"] = 60,
+	}
+	return unitLevels[who]
 end
 function UnitName( who )
-	local unitNames = {
-		["player"] = "testPlayer",
-	}
-	return unitNames[who]
+	return Units[who].name, Units[who].realm
 end
 function UnitPowerMax( who, powerType )
 	-- http://wowwiki.wikia.com/wiki/API_UnitPowerMax
@@ -1189,17 +1571,25 @@ function UnitPowerMax( who, powerType )
 	return 12345
 end
 function UnitRace( who )
-	local unitRaces = {
-		["player"] = "Human",
-	}
-	return unitRaces[who]
+	return Units[who].race
+end
+function UnitRealmRelationship( who )
+	-- https://wow.gamepedia.com/API_UnitRealmRelationship
+	-- returns
+	-- 1 = same realm
+	-- 2 = coalesced and unconnected realms
+	-- 3 = connected realms
+	return Units[who].realmRelationship
 end
 function UnitSex( who )
 	-- 1 = unknown, 2 = Male, 3 = Female
-	local unitSex = {
-		["player"] = 3,
-	}
-	return unitSex[who]
+	return Units[who].sex
+end
+function UnitXP( who )
+	return 100
+end
+function UnitXPMax( who )
+	return 1000
 end
 ---------  C_WowTokenPublic
 C_WowTokenPublic = {}
@@ -1247,7 +1637,500 @@ function C_TradeSkillUI.GetRecipeTools( recipeID )
 	--name : string
 	--has : boolean
 end
+----------
+C_EquipmentSet = {}
+function C_EquipmentSet.GetNumEquipmentSets()
+	-- http://www.wowwiki.com/API_GetNumEquipmentSets
+	-- Returns 0,MAX_NUM_EQUIPMENT_SETS
+	return #EquipmentSets
+end
+function C_EquipmentSet.GetEquipmentSetInfo( index )
+	-- http://www.wowwiki.com/API_GetEquipmentSetInfo
+	-- Returns: name, icon, lessIndex = GetEquipmentSetInfo(index)
+	-- Returns: nill if no equipmentSet at that index
+	-- lessIndex is index-1 ( not used )
+	if EquipmentSets[index] then
+		return EquipmentSets[index].name, EquipmentSets[index].icon, index-1
+	end
+end
+function C_EquipmentSet.GetItemIDs( index )
+	-- http://wowprogramming.com/docs/api/GetEquipmentSetItemIDs
+	-- Returns a table of item IDs keyed by slotID of items in the equipmentSet
+	if EquipmentSets[index] then
+		return EquipmentSets[index].items
+	end
+end
+function C_EquipmentSet.GetIgnoredSlots( setNum )
+	-- Returns an array of true or false for each item slot (1-19)
+	-- True is ignored, false is not
+	return {}
+end
+function GetEquipmentSetInfoByName( nameIn )
+	-- http://www.wowwiki.com/API_GetEquipmentSetInfo
+	-- Returns: icon, lessIndex = GetEquipmentSetInfoByName
+	for i = 1, #EquipmentSets do
+		if EquipmentSets[i].name == nameIn then  -- Since EquipementSet names are case sensitve...
+			return EquipmentSets[i].icon, i-1
+		end
+	end
+end
+
 --http://wow.gamepedia.com/Patch_7.0.3/API_changes
 
 --/script for k,v in pairs(C_TradeSkillUI.GetAllRecipeIDs()) do print(k..":"..v) end
 --/script for k,v in pairs(C_TradeSkillUI.GetAllRecipeIDs()) do print(k..":"..v) end
+
+----------
+
+----------
+C_AuctionHouse = {}
+function C_AuctionHouse.PostItem( item, duration, quantity, bid, buyout )
+end
+function C_AuctionHouse.PostCommodity( item, duration, quantity, price )
+end
+
+
+function IsQuestFlaggedCompleted( questID )
+	return nil
+end
+-- C_MountJournal
+C_MountJournal = {}
+C_MountJournal.critters = { ["mount"] = {}, ["critter"] = {} }
+
+function C_MountJournal.GetMountIDs( )
+	return {}
+end
+
+----------
+-- C_CurrencyInfo
+----------
+C_CurrencyInfo = {}
+function C_CurrencyInfo.GetCoinTextureString( copperIn, fontHeight )
+-- simulates the Wow function:  http://www.wowwiki.com/API_GetCoinTextureString
+-- fontHeight is ignored for now.
+	if copperIn then
+		-- cannot return exactly what WoW does, but can make a simular string
+		local gold = math.floor(copperIn / 10000); copperIn = copperIn - (gold * 10000)
+		local silver = math.floor(copperIn / 100); copperIn = copperIn - (silver * 100)
+		local copper = copperIn
+		return( (gold and gold.."G ")..
+				(silver and silver.."S ")..
+				(copper and copper.."C"))
+	end
+end
+function C_CurrencyInfo.GetCurrencyInfo( id ) -- id is integet
+	-- returns a table:
+	-- 		localName, isHeader, isHeaderExpanded, isTypeUnused, isShowInBackpack, quantity, iconFileID, maxQuantity,
+	--      canEarnPerWeek, quantityEarnedThisWeek, isTradeable, quality, maxWeeklyQuantity, discovered
+	local ci = Currencies[id]
+	if ci then
+		return { ["localName"]=ci.name, ["isHeader"]=false, ["isHeaderExpanded"]=false, ["isTypeUnused"]=false,
+				["isShowInBackpack"]=false, ["quantity"]=(myCurrencies[id] or 0), ["discovered"] = ci.isDiscovered,
+				["canEarnPerWeek"]=ci.weeklyMax, ["maxQuantity"]=ci.totalMax, ["quantityEarnedThisWeek"]=0 }
+				-- @TODO: fix the quantityEarnedThisWeek to come from myCurrencies
+	end
+end
+function C_CurrencyInfo.GetCurrencyLink( id )
+	if Currencies[id] then
+		return Currencies[id].link
+	end
+end
+
+----------
+-- C_Bank
+----------
+C_Bank = {}
+function C_Bank.FetchDepositedMoney( accountTypeEnum )
+	return 8376
+end
+function C_Bank.CanDepositMoney()
+	return true
+end
+
+Enum = {}
+Enum.TooltipDataType = {}
+Enum.TooltipDataType.Item = 0
+Enum.BankType = {["Account"] = 2}
+
+TooltipDataProcessor = {}
+function TooltipDataProcessor.AddTooltipPostCall()
+end
+
+----------
+-- Macros
+----------
+myMacros = {
+	["general"] = {},  -- [1] = { ["name"] = "", ["icon"] = "", ["text"] = "" }   1-120 = general
+	["personal"] = {}, -- 1-18 = personal (+120)
+	["sort"] = function()
+		table.sort( myMacros.general, function( l, r ) return( l.name < r.name ); end )
+		table.sort( myMacros.personal, function( l, r ) return( l.name < r.name ); end )
+	end,
+}
+function GetMacroInfo( macroName )
+	-- returns:  macroName, macroIcon, macroText
+	if macroName then
+		local mIndex = GetMacroIndexByName( macroName )
+		if mIndex ~= 0 then
+			local location = mIndex > 120 and "personal" or "general"
+			mIndex = mIndex>120 and mIndex-120 or mIndex
+			return myMacros[location][mIndex].name, myMacros[location][mIndex].icon, myMacros[location][mIndex].text
+    	end
+	end
+end
+function GetMacroIndexByName( macroName )
+	-- returns index, or 0 if not found (seems to go from highest to lowest - person to general )
+	for index = 18, 1, -1 do
+		if myMacros.personal[index] and myMacros.personal[index].name == macroName then
+			return index+120
+		end
+	end
+	for index = 120, 1, -1 do
+		if myMacros.general[index] and myMacros.general[index].name == macroName then
+			return index
+		end
+	end
+	return 0
+end
+function CreateMacro( macroName, macroIcon, macroText, perChar )
+	-- returns: macroID
+	if macroName then
+		local mIndex = GetMacroIndexByName( macroName )
+		if mIndex == 0 then
+			local location = perChar and "personal" or "general"
+			table.insert( myMacros[location], { ["name"] = macroName, ["icon"] = macroIcon, ["text"] = macroText } )
+			myMacros.sort()
+			return( GetMacroIndexByName( macroName ) )  -- return the ID
+		end
+	end
+end
+function EditMacro( macroName, newName, newIcon, body )
+	-- macroName is name or index
+	-- returns: new macroID
+	if macroName then
+		mIndex = tonumber(macroName) or GetMacroIndexByName( macroName )
+		if mIndex ~= 0 then
+			local location = mIndex > 120 and "personal" or "general"
+			mIndex = mIndex>120 and mIndex-120 or mIndex
+			myMacros[location][mIndex].name = newName or myMacros[location][mIndex].name
+			myMacros[location][mIndex].icon = newIcon or myMacros[location][mIndex].icon
+			myMacros[location][mIndex].text = body or myMacros[location][mIndex].text
+			myMacros.sort()
+			return( GetMacroIndexByName( macroName ) )  -- return the ID
+		end
+	end
+end
+
+--------
+-- C_ChatInfo
+--------
+C_ChatInfo = {}
+function C_ChatInfo.IsAddonMessagePrefixRegistered( prefix )
+	return true
+end
+function C_ChatInfo.RegisterAddonMessagePrefix( prefix )
+end
+function C_ChatInfo.SendAddonMessage()
+	return true
+end
+
+----------
+-- Toy info
+----------
+toyList = {}   -- [id] = {true | false}
+C_ToyBox = {}
+function PlayerHasToy( id )
+	return toyList[id]
+end
+function C_ToyBox.IsToyUsable( id )
+	return toyList[id] and toyList[id][1]
+end
+
+----------
+-- C_Reputation
+----------
+C_Reputation = {}
+function C_Reputation.GetFactionDataByID( idIn )
+	for _, factionData in pairs( FactionInfo ) do
+		if factionData.factionID == idIn then
+			return factionData
+		end
+	end
+end
+function C_Reputation.GetFactionParagonInfo()
+end
+
+----------
+-- C_GossipInfo
+----------
+C_GossipInfo = {}
+function C_GossipInfo.GetFriendshipReputation( idIn )
+	return {["maxRep"]=0, ["text"]="", ["reversedColor"]=false, ["reaction"]="", ["standing"]=0, ["reactionThreshold"]=0, ["friendshipFactionID"]=0, ["textrue"]=0}
+end
+
+----------
+-- C_Item
+----------
+C_Item = {}
+C_Item.GetItemCount = GetItemCount
+
+----------
+-- Menu
+----------
+Menu = {}
+function Menu.ModifyMenu( ... )
+end
+
+-- A SAX parser takes a content handler, which provides these methods:
+--     startDocument()                 -- called at the start of the Document
+--     endDocument()                   -- called at the end of the Document
+--     startElement( tagName, attrs )  -- with each tag start.  attrs is a table of attributes and values
+--     endElement( tagName )           -- when a tag ends
+--     characters( char )              -- for each character not being in a tag
+-- The parser calls each of these methods as these events happen.
+
+-- A SAX parser defines a parser (created with makeParser)
+-- a Parser has a ContentHandler assigned
+-- a Parser also defines these methods:
+--      setContentHandler( contentHandler )
+--      setFeature()  -- prob not going to implement
+--      parse( text )
+--      parse( file )
+
+-- https://www.w3schools.com/xml/xml_elements.asp
+-- https://www.w3schools.com/xml/xml_syntax.asp
+
+
+contentHandler = {}
+-- normally the contentHandler is an object, where data structures are created in the new object.
+function contentHandler.startDocument( this )
+end
+function contentHandler.endDocument( this )
+end
+function contentHandler.startElement( this, tagName, attrs )
+end
+function contentHandler.endElement( this, tagName )
+end
+function contentHandler.characters( this, char )
+end
+
+saxParser = {}
+-- SAX Parser
+-- interface
+function saxParser.makeParser()
+	-- make a parser.  This is probably intended to be a factory function
+	return saxParser
+end
+function saxParser.setContentHandler( contentHandlerIn )
+	-- takes a table
+	saxParser.contentHandler = contentHandlerIn
+end
+function saxParser.setFeature()
+	-- research this
+end
+function saxParser.parse( fileIn )
+	f = io.open( fileIn, "r" )
+	if f then fileIn = f:read( "*all" ) end   -- read the contents of the file
+
+	-- call the startDocument method for the given contentHandler
+	if saxParser.contentHandler and saxParser.contentHandler.startDocument then
+		saxParser.contentHandler:startDocument()
+	end
+
+	-- loop through each char
+	State = {
+		Outside       = { 0 },  -- outside of a tag
+		ElementName   = { 1 },  -- When to parse for a name
+		InElement     = { 2 },  -- In the element
+	}
+	currentState = State.Outside
+	elementDepth = {}   -- table of current element depth
+	elementName = ""
+	chars = ""
+
+	while( #fileIn > 0 ) do
+		-- print( currentState[1].."\t"..#fileIn, "fileIn: "..string.sub( fileIn, 1, 60 ) )
+		c = string.sub( fileIn, 1, 1 )
+		n = string.sub( fileIn, 2, 2 )
+		handled = false
+		if currentState == State.Outside then
+			if c == "<" then
+				if n == "?" then
+					local endProlog = string.find( fileIn, "?>" )
+					if endProlog then
+						fileIn = string.sub( fileIn, endProlog+2 )
+					end
+				elseif n == "!" then
+					local endComment = string.find( fileIn, "%-%->" )
+					if endComment then
+						fileIn = string.sub( fileIn, endComment+3 )
+					end
+				else
+					currentState = State.ElementName
+					elementName = ""
+					fileIn = string.sub( fileIn, 2 )
+				end
+			else
+				saxParser.contentHandler:characters( c )
+				fileIn = string.sub( fileIn, 2 )
+			end
+		elseif currentState == State.ElementName then
+			tagStart, tagEnd, tagName = string.find( fileIn, "^([%a_][%a%d-_.]*)" )
+			if tagStart then
+				elementName = tagName
+				attributes = {}
+				currentState = State.InElement
+				fileIn = string.sub( fileIn, tagEnd + 1 )
+			end
+			tagStart, tagEnd, tagName = string.find( fileIn, "^/([%a_][%a%d-_.]*)" )
+			if tagStart then
+				elementName = tagName
+				-- print( "Fire endElement( "..tagName.." )" )
+				depthElement = table.remove( elementDepth )
+				saxParser.contentHandler:endElement( tagName )
+				if depthElement ~= elementName then
+					fail( "ERROR: Closing "..elementName.." is not the expected element to close; "..( depthElement or "nil" ).." is expected." )
+				end
+				currentState = State.Outside
+				fileIn = string.sub( fileIn, tagEnd + 2 )
+			end
+		elseif currentState == State.InElement then
+			attribStart, attribEnd, key, value = string.find( fileIn, "^%s*(%S+)%s*=%s*[\"\'](.-)[\"\']" )
+			if c == ">" or n == ">" then
+				-- print( "Fire startElement( "..elementName.." )" )
+				-- print( "\twith attributes: ")
+				-- for k,v in pairs( attributes ) do
+					-- print( "\t\t"..k..":="..v )
+				-- end
+				table.insert( elementDepth, elementName )
+				saxParser.contentHandler:startElement( elementName, attributes )
+				currentState = State.Outside
+				if c == "/" and n == ">" then
+					-- print( "Fire endElement( "..elementName.." )" )
+					depthElement = table.remove( elementDepth )
+					saxParser.contentHandler:endElement( elementName )
+					if depthElement ~= elementName then
+						fail( "ERROR: Closing "..elementName.." is not the expected element to close; "..depthElement.." is expected." )
+					end
+					currentState = State.Outside
+				end
+				fileIn = string.sub( fileIn, (n==">" and 3 or 2) )
+			elseif c == " " then
+				fileIn = string.sub( fileIn, 2 )
+			elseif attribStart then
+				attributes[key] = value
+				fileIn = string.sub( fileIn, attribEnd+1 )
+			end
+		end
+		-- print( "elementDepth: "..table.concat( elementDepth, "\t" ) )
+	end
+
+	-- call the endDocument method for the given contentHandler
+	if saxParser.contentHandler and saxParser.contentHandler.endDocument then
+		saxParser.contentHandler:endDocument()
+	end
+end
+function ParseXML( xmlFile )
+	ch = contentHandler
+	ch.startElement = function( self, tagIn, attribs )
+		if _G["Create"..tagIn] then
+			if attribs.name then
+				_G[attribs.name] = _G["Create"..tagIn]( attribs.name )
+				_G[attribs.name].framename = attribs.name
+			else
+				fail("A "..tagIn.." needs a name")
+			end
+		end
+	end
+	parser = saxParser.makeParser()
+	parser.setContentHandler( ch )
+	parser.parse( xmlFile )
+end
+
+-----------------------------------------
+-- TOC functions
+addonData = {}
+function ParseTOC( tocFile, useRequire )
+	-- parse the TOC file for ## entries, and lua files to include
+	-- put ## entries in addonData hash - normally hard coded
+	-- set useRequire to use the old require method
+	local tocFileTable = {}
+	local f = io.open( tocFile, "r" )
+	if f then
+		local tocContents = f:read( "*all" )
+		while true do
+			local linestart, lineend, line = string.find( tocContents, "(.-)\n" )
+			if linestart then
+				local lua, luaEnd, luaFile = string.find( line, "([_%a]*)%.lua" )
+				local xml, xmlEnd, xmlFile = string.find( line, "([_%a]*)%.xml" )
+				local hash, hashEnd, hashKey, hashValue = string.find( line, "## ([_%a]*): (.*)" )
+				if( hash ) then
+					addonData[ hashKey ] = hashValue
+				elseif( lua ) then
+					table.insert( tocFileTable, { "lua", luaFile } )
+				elseif( xml ) then
+					table.insert( tocFileTable, { "xml", xmlFile } )
+				end
+				tocContents = string.sub( tocContents, lineend+1 )
+			else
+				break
+			end
+		end
+		pathSeparator = string.sub(package.config, 1, 1)
+		-- first character of this string (http://www.lua.org/manual/5.2/manual.html#pdf-package.config)
+		includePath = tocFile
+		while( string.sub( includePath, -1, -1 ) ~= pathSeparator ) do
+			includePath = string.sub( includePath, 1, -2 )
+		end
+		addonName = string.sub( tocFile, string.len( includePath ) + 1, -5 )
+
+		if( useRequire ) then
+			--add to the include package.path
+			package.path = includePath.."?.lua;" .. package.path
+		end
+		sharedTable = {}
+
+		for _,f in pairs( tocFileTable ) do
+			if( f[1] == "lua" ) then
+				if( useRequire ) then
+					require( f[2] )
+				else
+					local loadedfile = assert( loadfile( includePath..f[2]..".lua" ) )
+					loadedfile( addonName, sharedTable )
+				end
+			elseif( f[1] == "xml" ) then
+				ParseXML( includePath..f[2]..".xml" )
+			end
+		end
+	else
+		fail( "TOC file not found" )
+	end
+end
+
+-- Standard Frames
+GameTooltip = CreateFrame( "GameTooltip", "tooltip" )
+ChatFrame1 = CreateFrame( nil, "ChatFrame1" )
+
+---   https://wowwiki.fandom.com/wiki/AddOn_loading_process
+--[[ Load event order:
+
+After the addon code has been loaded, the loading process can be followed by registering for various events, listed here in order of firing.
+
+    ADDON_LOADED
+        This event fires whenever an AddOn has finished loading and the SavedVariables for that AddOn have been loaded from their file.
+    SPELLS_CHANGED
+        This event fires shortly before the PLAYER_LOGIN event and signals that information on the user's spells has been loaded and is available to the UI.
+    PLAYER_LOGIN
+        This event fires immediately before PLAYER_ENTERING_WORLD.
+        Most information about the game world should now be available to the UI.
+        All Sizing and Positioning of frames is supposed to be completed before this event fires.
+        AddOns that want to do one-time initialization procedures once the player has "entered the world" should use this event instead of PLAYER_ENTERING_WORLD.
+    PLAYER_ENTERING_WORLD
+        This event fires immediately after PLAYER_LOGIN
+        Most information about the game world should now be available to the UI. If this is an interface reload rather than a fresh log in, talent information should also be available.
+        All Sizing and Positioning of frames is supposed to be completed before this event fires.
+        This event also fires whenever the player enters/leaves an instance and generally whenever the player sees a loading screen
+    PLAYER_ALIVE
+        This event fires after PLAYER_ENTERING_WORLD
+        Quest and Talent information should now be available to the UI
+]]
