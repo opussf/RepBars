@@ -246,6 +246,8 @@ function FB.AmmendFactionData( factionData )
 		else
 			factionData.standingText             = _G["FACTION_STANDING_LABEL"..factionData.reaction]
 		end
+		factionData.standingPercent              = ((factionData.currentStanding - factionData.currentReactionThreshold) / (factionData.nextReactionThreshold - factionData.currentReactionThreshold)) * 100
+
 		return factionData
 	end
 end
@@ -291,7 +293,7 @@ function FB.GenerateBarData()
 					["outStr"] = factionName..
 						((FB_options.showStanding or FB_options.showPercent) and " (" or "")..
 						(FB_options.showStanding and factionData.standingText or "")..
-						(FB_options.showPercent and string.format(" %0.2f%%", (factionData.currentStanding / factionData.nextReactionThreshold) * 100) or "")..
+						(FB_options.showPercent and string.format(" %0.2f%%", factionData.standingPercent) or "")..
 						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
 						": "..
 						(FB_options.showLastGain and history[maxTS] or "")..
