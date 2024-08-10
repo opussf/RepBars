@@ -18,6 +18,7 @@ FB.timeFrames = {
 	["half hour"] =   1800,
 	["1 hour"]   =    3600,
 	["2 hours"]  =    7200,
+	["3 hours"]  =   10800,
 	["6 hours"]  =   21600,
 	["half day"] =   43000,
 	["1 day"]    =   86000,
