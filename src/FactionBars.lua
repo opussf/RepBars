@@ -234,15 +234,19 @@ function FB.FormatToPattern(formatString)
 
 	return patternString
 end
-function FB.GetFactionStanding( factionData )
+function FB.AmmendFactionData( factionData )
 	-- takes the factionData struct from GetFactionDataByID
 	if factionData then
 		local friendshipData = C_GossipInfo.GetFriendshipReputation( factionData.factionID )
 		if friendshipData and friendshipData.friendshipFactionID > 0 then
-			return friendshipData.reaction
+			factionData.nextReactionThreshold    = friendshipData.nextThreshold
+			factionData.currentReactionThreshold = friendshipData.reactionThreshold
+			factionData.currentStanding          = friendshipData.standing
+			factionData.standingText             = friendshipData.reaction
 		else
-			return _G["FACTION_STANDING_LABEL"..factionData.reaction]
+			factionData.standingText             = _G["FACTION_STANDING_LABEL"..factionData.reaction]
 		end
+		return factionData
 	end
 end
 -- Output
@@ -273,6 +277,7 @@ function FB.GenerateBarData()
 		factionID = FB.GetFactionIDByName( factionName )
 		if factionID then factionData = C_Reputation.GetFactionDataByID( factionID ) end
 		if factionData then
+			factionData = FB.AmmendFactionData( factionData )
 			if track ~= 0 then
 				local rate = ratetrack / 1800
 				local timeTillNext = (factionData.nextReactionThreshold - factionData.currentStanding) /
@@ -285,7 +290,7 @@ function FB.GenerateBarData()
 					["minTS"] = minTS,
 					["outStr"] = factionName..
 						((FB_options.showStanding or FB_options.showPercent) and " (" or "")..
-						(FB_options.showStanding and FB.GetFactionStanding( factionData ) or "")..
+						(FB_options.showStanding and factionData.standingText or "")..
 						(FB_options.showPercent and string.format(" %0.2f%%", (factionData.currentStanding / factionData.nextReactionThreshold) * 100) or "")..
 						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
 						": "..
