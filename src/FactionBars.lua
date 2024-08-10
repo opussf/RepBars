@@ -234,6 +234,17 @@ function FB.FormatToPattern(formatString)
 
 	return patternString
 end
+function FB.GetFactionStanding( factionData )
+	-- takes the factionData struct from GetFactionDataByID
+	if factionData then
+		local friendshipData = C_GossipInfo.GetFriendshipReputation( factionData.factionID )
+		if friendshipData and friendshipData.friendshipFactionID > 0 then
+			return friendshipData.reaction
+		else
+			return _G["FACTION_STANDING_LABEL"..factionData.reaction]
+		end
+	end
+end
 -- Output
 -- processed data into FB.barData
 -- makes sure it is sorted
@@ -274,7 +285,7 @@ function FB.GenerateBarData()
 					["minTS"] = minTS,
 					["outStr"] = factionName..
 						((FB_options.showStanding or FB_options.showPercent) and " (" or "")..
-						(FB_options.showStanding and _G["FACTION_STANDING_LABEL"..factionData.reaction] or "")..
+						(FB_options.showStanding and FB.GetFactionStanding( factionData ) or "")..
 						(FB_options.showPercent and string.format(" %0.2f%%", (factionData.currentStanding / factionData.nextReactionThreshold) * 100) or "")..
 						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
 						": "..
