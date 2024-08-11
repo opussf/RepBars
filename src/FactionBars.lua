@@ -23,10 +23,12 @@ FB.timeFrames = {
 	["half day"] =   43000,
 	["1 day"]    =   86000,
 	["2 days"]   =  172000,
+	["3 days"]   =  258000,
 	["1 week"]   =  604800,
 	["2 weeks"]  = 1209600,
 	["3 weeks"]  = 1714400,
 	["1 month"]  = 2419200,
+	["2 months"] = 4838400,
 	["3 months"] = 7257600,
 }
 FB.formats = {
