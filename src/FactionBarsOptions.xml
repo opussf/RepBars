@@ -73,106 +73,18 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 					<OnShow>FB.OptionsPanel_EditBox_OnShow( self, "formatString" )</OnShow>
 					<OnTextChanged>FB.OptionsPanel_EditBox_TextChanged( self, "formatString" )</OnTextChanged>
 				</Scripts>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="$parent_FormatStringHelp" inherits="GameFontWhite" justifyH="LEFT">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT">
+									<Offset><AbsDimension x="0" y="-20"/></Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
 			</EditBox>
-
-
-			<CheckButton name="$parent_ShowStandingBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_FormatStringEditBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-20"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = "Show the current standing with the faction";</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showStanding","Show Faction Standing");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showStanding")</PostClick>
-				</Scripts>
-			</CheckButton>
-			<CheckButton name="$parent_ShowPercentBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowStandingBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = "Show the progress percentage for the current standing";</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showPercent","Show Faction Percent");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showPercent")</PostClick>
-				</Scripts>
-			</CheckButton>
-			<CheckButton name="$parent_ShowLastGainBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowPercentBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = "Show the last reputaion gain"</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showLastGain","Show Last Reputation Gain");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showLastGain")</PostClick>
-				</Scripts>
-			</CheckButton>
-			<CheckButton name="$parent_ShowRangeGainBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowLastGainBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = ""</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showRangeGain","Show Reputation Gain During Range");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showRangeGain")</PostClick>
-				</Scripts>
-			</CheckButton>
-			<CheckButton name="$parent_ShowRepTillNextBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRangeGainBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = ""</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showRepTillNext","Show Reputation Needed Till Next Level");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showRepTillNext")</PostClick>
-				</Scripts>
-			</CheckButton>
-
-			<CheckButton name="$parent_ShowRepAgeBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRepTillNextBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = ""</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showRepAge","Show Youngest Reputation Gain Age");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showRepAge")</PostClick>
-				</Scripts>
-			</CheckButton>
-			<CheckButton name="$parent_ShowTimeTillNextBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowRepAgeBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = ""</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showTimeTillNext","Show Time Until Next Level");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showTimeTillNext")</PostClick>
-				</Scripts>
-			</CheckButton>
-			<CheckButton name="$parent_ShowRepsTillNextBox" inherits="FactionBarOptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_ShowTimeTillNextBox" relativePoint="BOTTOMLEFT">
-						<Offset><AbsDimension x="0" y="-10"></AbsDimension></Offset>
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnLoad>self.tooltip = ""</OnLoad>
-					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"showRepsTillNext","Show Reps of last gain Until Next Level");</OnShow>
-					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"showRepsTillNext")</PostClick>
-				</Scripts>
-			</CheckButton>
 
 		</Frames>
 		<Scripts>

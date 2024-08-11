@@ -37,8 +37,8 @@ FB.formats = {
 	["t"] = {["help"]="Total gain in time range", ["var"]="track"},
 	["n"] = {["help"]="Rep til Next rank", ["var"]="repTilNextThreshold"},
 	["a"] = {["help"]="Time since last rep gain", ["var"]="timeSinceRepGain"},
-	["g"] = {["help"]="end", ["var"]="timeTillNext"},
-	["c"] = {["help"]="end", ["var"]="repsToGo"},
+	["g"] = {["help"]="Time till next rank", ["var"]="timeTillNext"},
+	["c"] = {["help"]="Count of reps till next rank", ["var"]="repsToGo"},
 }
 
 FB.maxTrack = 0

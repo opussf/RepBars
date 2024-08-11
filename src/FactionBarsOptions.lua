@@ -35,21 +35,17 @@ function FB.OptionsPanel_Default()
 end
 function FB.OptionsPanel_Refresh()
 	-- This gets called, it seems, when the options panel is opened.
-	-- FB.Print("OptionsPanel_Refresh")
 	FB.OptionsPanel_NumBarSlider_Init(FactionBarsOptionsFrame_NumBars)
 	FB.OptionsPanel_TrackPeriodSlider_Init(FactionBarsOptionsFrame_TrackPeriodSlider)
 	FactionBarsOptionsFrame_AutoChangeWatchedBox:SetChecked( FB_options["autoChangeWatched"] )
-	-- FactionBarsOptionsFrame_FormatStringEditBox:SetText( FB_options["formatString"]
 	FB.OptionsPanel_EditBox_OnShow( FactionBarsOptionsFrame_FormatStringEditBox, "formatString" )
-
-	FactionBarsOptionsFrame_ShowStandingBox:SetChecked( FB_options["showStanding"] )
-	FactionBarsOptionsFrame_ShowPercentBox:SetChecked( FB_options["showPercent"] )
-	FactionBarsOptionsFrame_ShowLastGainBox:SetChecked( FB_options["showLastGain"] )
-	FactionBarsOptionsFrame_ShowRangeGainBox:SetChecked( FB_options["showRangeGain"] )
-	FactionBarsOptionsFrame_ShowRepTillNextBox:SetChecked( FB_options["showRepTillNext"] )
-	FactionBarsOptionsFrame_ShowRepAgeBox:SetChecked( FB_options["showRepAge"] )
-	FactionBarsOptionsFrame_ShowTimeTillNextBox:SetChecked( FB_options["showTimeTillNext"] )
-	FactionBarsOptionsFrame_ShowRepsTillNextBox:SetChecked( FB_options["autoChangeWatched"] )
+	local helpStr = {}
+	for k,v in pairs( FB.formats ) do
+		if v.help then
+			table.insert( helpStr, string.format( "%%%s -> %s", k, v.help ) )
+		end
+	end
+	FactionBarsOptionsFrame_FormatStringEditBox_FormatStringHelp:SetText( table.concat( helpStr, "\n" ) )
 end
 function FB.OptionsPanel_OnLoad(panel)
 	--FB.Print("OptionsPanel_OnLoad")
