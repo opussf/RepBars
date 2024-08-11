@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  August 6 2024
--- Revision:  9.4.3-11-ga7a1da8
+-- Date    :  August 11 2024
+-- Revision:  9.4.3-13-gb4f594c
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -1851,6 +1851,19 @@ function PlayerHasToy( id )
 end
 function C_ToyBox.IsToyUsable( id )
 	return toyList[id] and toyList[id][1]
+end
+
+----------
+-- Settings
+----------
+Settings = {}
+function Settings.OpenToCategory( id )
+end
+function Settings.RegisterCanvasLayoutCategory( frame, name )
+	-- return a category structure
+	return ( {["GetID"] = function() return 234; end} )
+end
+function Settings.RegisterAddOnCategory(category)
 end
 
 ----------
