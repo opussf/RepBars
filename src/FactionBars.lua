@@ -29,6 +29,18 @@ FB.timeFrames = {
 	["1 month"]  = 2419200,
 	["3 months"] = 7257600,
 }
+FB.formats = {
+	["e"] = {["var"]="end"},
+	["s"] = {["help"]="Standing text", ["var"]="standingText"},
+	["p"] = {["help"]="Standing percent", ["var"]="standingPercent"},
+	["l"] = {["help"]="Last rep gain", ["var"]="last"},
+	["t"] = {["help"]="Total gain in time range", ["var"]="track"},
+	["n"] = {["help"]="Rep til Next rank", ["var"]="repTilNextThreshold"},
+	["a"] = {["help"]="Time since last rep gain", ["var"]="timeSinceRepGain"},
+	["g"] = {["help"]="Time till next rank", ["var"]="timeTillNext"},
+	["c"] = {["help"]="Count of reps till next rank", ["var"]="repsToGo"},
+}
+
 FB.maxTrack = 0
 
 FB.bars = {} -- holds the bars
@@ -248,11 +260,25 @@ function FB.AmmendFactionData( factionData )
 			factionData.standingText             = _G["FACTION_STANDING_LABEL"..factionData.reaction]
 		end
 		factionData.standingPercent              = (factionData.nextReactionThreshold ~= factionData.currentReactionThreshold and
-				((factionData.currentStanding - factionData.currentReactionThreshold) / (factionData.nextReactionThreshold - factionData.currentReactionThreshold)) * 100 or
-				nil)
+				string.format( "%0.2f%%", ((factionData.currentStanding - factionData.currentReactionThreshold) / (factionData.nextReactionThreshold - factionData.currentReactionThreshold)) * 100)
+				or nil)
 
 		return factionData
 	end
+end
+function FB.FormatString( factionData )
+	-- return a formated sting to display
+	strOut = factionData.name..( FB_options.formatString and " " or "" )
+	for stringPart in string.gmatch( FB_options.formatString and FB_options.formatString.."%e" or "", "[^%%]*%%." ) do
+		formatCode = string.sub( stringPart, -1 )
+		if FB.formats[formatCode] then
+			-- print( stringPart.." -> "..formatCode.." -> "..FB.formats[formatCode].var.." -> ".. (factionData[FB.formats[formatCode].var] or "nil") )
+			strOut = strOut .. string.sub( stringPart, 1, -3 )..(factionData[FB.formats[formatCode].var] or "")
+			-- print( strOut )
+		end
+	end
+	-- print( strOut )
+	return strOut
 end
 -- Output
 -- processed data into FB.barData
@@ -283,32 +309,23 @@ function FB.GenerateBarData()
 		if factionID then factionData = C_Reputation.GetFactionDataByID( factionID ) end
 		if factionData then
 			factionData = FB.AmmendFactionData( factionData )
+			factionData.last = history[maxTS]
+			factionData.track = track
+			factionData.repTilNextThreshold = factionData.nextReactionThreshold - factionData.currentStanding
+			factionData.timeSinceRepGain = SecondsToTime(time()-maxTS,false,false,1)
+
 			if track ~= 0 then
 				local rate = ratetrack / 1800
-				local timeTillNext = (factionData.nextReactionThreshold - factionData.currentStanding) /
-									 (( rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod]))
+				factionData.timeTillNext = SecondsToTime((factionData.nextReactionThreshold - factionData.currentStanding) /
+									 (( rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod])))
 				-- calculate timeTillNext based on 30 minutes, or the range if no data in the last 30 min.
-				local reps = math.ceil((factionData.nextReactionThreshold - factionData.currentStanding) / history[maxTS])
+				factionData.repsToGo = math.ceil((factionData.nextReactionThreshold - factionData.currentStanding) / history[maxTS])
+				factionData.repsToGo = factionData.repsToGo.." rep"..(factionData.repsToGo~=1 and "s" or "")
 				paragonData = C_Reputation.GetFactionParagonInfo( FB.GetFactionIDByName( factionName ) )
 				FB_barData[factionName] = {
 					["maxTS"] = maxTS,
 					["minTS"] = minTS,
-					["outStr"] = factionName..
-						((FB_options.showStanding or FB_options.showPercent) and " (" or "")..
-						(FB_options.showStanding and factionData.standingText or "")..
-						((FB_options.showPercent and factionData.standingPercent) and string.format(" %0.2f%%", factionData.standingPercent) or "")..
-						((FB_options.showStanding or FB_options.showPercent) and (")") or "")..
-						": "..
-						(FB_options.showLastGain and history[maxTS] or "")..
-						(FB_options.showRangeGain and (" ("..track..")") or "")..
-						(FB_options.showRepTillNext and (" -> "..(factionData.nextReactionThreshold - factionData.currentStanding)) or "")..
-						(FB_options.showRepAge and
-							(" ("..SecondsToTime(now-maxTS,false,false,1)..")") or "")..
-						(FB_options.showTimeTillNext and
-							(" in "..SecondsToTime(timeTillNext)) or "")..
-						(FB_options.showRepsTillNext and
-							(" "..reps.." rep"..(reps~=1 and "s" or "")) or "")..
-							"",
+					["outStr"] = FB.FormatString( factionData ),
 					["nextReactionThreshold"] = factionData.nextReactionThreshold,
 					["currentReactionThreshold"] = factionData.currentReactionThreshold,
 					["currentStanding"] = factionData.currentStanding,
