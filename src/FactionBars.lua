@@ -258,8 +258,8 @@ function FB.AmmendFactionData( factionData )
 	if factionData then
 		local friendshipData = C_GossipInfo.GetFriendshipReputation( factionData.factionID )
 		if friendshipData and friendshipData.friendshipFactionID > 0 then
-			factionData.nextReactionThreshold    = friendshipData.nextThreshold
-			factionData.currentReactionThreshold = friendshipData.reactionThreshold
+			factionData.nextReactionThreshold    = ( friendshipData.nextThreshold or factionData.nextReactionThreshold )
+			factionData.currentReactionThreshold = ( friendshipData.reactionThreshold or factionData.currentReactionThreshold )
 			factionData.currentStanding          = friendshipData.standing
 			factionData.standingText             = friendshipData.reaction
 		else
@@ -268,7 +268,6 @@ function FB.AmmendFactionData( factionData )
 		factionData.standingPercent              = (factionData.nextReactionThreshold ~= factionData.currentReactionThreshold and
 				string.format( "%0.2f%%", ((factionData.currentStanding - factionData.currentReactionThreshold) / (factionData.nextReactionThreshold - factionData.currentReactionThreshold)) * 100)
 				or nil)
-
 		return factionData
 	end
 end
