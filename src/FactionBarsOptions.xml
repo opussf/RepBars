@@ -61,10 +61,24 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"autoChangeWatched")</PostClick>
 				</Scripts>
 			</CheckButton>
+			<EditBox name="$parent_FormatStringEditBox" inherits="InputBoxTemplate" autoFocus="false">
+				<Size x="390" y="16"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_AutoChangeWatchedBox" relativePoint="BOTTOMLEFT">
+						<Offset x="0" y="-20" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>self.tooltip = "Format String";</OnLoad>
+					<OnShow>FB.OptionsPanel_EditBox_OnShow( self, "formatString" )</OnShow>
+					<OnTextChanged>FB.OptionsPanel_EditBox_TextChanged( self, "formatString" )</OnTextChanged>
+				</Scripts>
+			</EditBox>
+
 
 			<CheckButton name="$parent_ShowStandingBox" inherits="FactionBarOptionsCheckButtonTemplate">
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_AutoChangeWatchedBox" relativePoint="BOTTOMLEFT">
+					<Anchor point="TOPLEFT" relativeTo="$parent_FormatStringEditBox" relativePoint="BOTTOMLEFT">
 						<Offset><AbsDimension x="0" y="-20"></AbsDimension></Offset>
 					</Anchor>
 				</Anchors>

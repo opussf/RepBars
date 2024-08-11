@@ -39,6 +39,8 @@ function FB.OptionsPanel_Refresh()
 	FB.OptionsPanel_NumBarSlider_Init(FactionBarsOptionsFrame_NumBars)
 	FB.OptionsPanel_TrackPeriodSlider_Init(FactionBarsOptionsFrame_TrackPeriodSlider)
 	FactionBarsOptionsFrame_AutoChangeWatchedBox:SetChecked( FB_options["autoChangeWatched"] )
+	-- FactionBarsOptionsFrame_FormatStringEditBox:SetText( FB_options["formatString"]
+	FB.OptionsPanel_EditBox_OnShow( FactionBarsOptionsFrame_FormatStringEditBox, "formatString" )
 
 	FactionBarsOptionsFrame_ShowStandingBox:SetChecked( FB_options["showStanding"] )
 	FactionBarsOptionsFrame_ShowPercentBox:SetChecked( FB_options["showPercent"] )
@@ -137,4 +139,17 @@ function FB.OptionsPanel_CheckButton_PostClick( self, option )
 		FB.oldValues={[option]=FB_options[option]}
 	end
 	FB_options[option] = self:GetChecked()
+end
+function FB.OptionsPanel_EditBox_OnShow( self, option )
+	self:SetText( tostring( FB_options[option] ) )
+	self:SetCursorPosition(0)
+	if self:IsNumeric() then
+		self:SetValue(FB_options[option])
+	end
+end
+function FB.OptionsPanel_EditBox_TextChanged( self, option )
+	FB_options[option] = (self:IsNumeric() and self:GetNumber() or self:GetText())
+	if self:IsNumeric() then
+		self:SetValue(FB_options[option])
+	end
 end
