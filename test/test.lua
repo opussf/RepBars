@@ -13,6 +13,8 @@ ParseTOC( "../src/FactionBars.toc" )
 
 function test.before()
 	FB_repSaved = {}
+	FB_factionmap = {}
+	FB_barData = {}
 	chatLog = {}
 	FB.OnLoad()
 	FB.UpdateOptions()
@@ -101,14 +103,90 @@ function test.test_UI_uireset()
 end
 function test.test_Command_ShowRep()
 	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "(%s):"
 	FB.Command( "rep" )
 	assertEquals( 2, #chatLog )
-	assertEquals( "Faction Bars> Alliance (Honored): ", chatLog[2].msg )
+	assertEquals( "Faction Bars> Alliance (Honored):", chatLog[2].msg )
 end
 function test.test_Command_ShowRep_zeros_old_data()
 	FB_repSaved = { ["Stormwind"] = {[100.0] = 15, [200] = 15, [300] = 15 } }
 	FB.Command( "rep" )
 	assertEquals( 45, FB_repSaved["Stormwind"][0] )
 end
+function test.test_formatStr_isNil()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = nil
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance", chatLog[2].msg )
+end
+function test.test_formatStr_standing()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%s"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance Honored", chatLog[2].msg )
+end
+function test.test_formatStr_percent()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%p"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 11.58%", chatLog[2].msg )
+end
+function test.test_formatStr_lastGain()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%l"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 15", chatLog[2].msg )
+end
+function test.test_formatStr_rangeGain()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%t"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 30", chatLog[2].msg )
+end
+function test.test_formatStr_repTilNext()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%n"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 10610", chatLog[2].msg )
+end
+function test.test_formatStr_repAge()
+	FB_repSaved = { ["Alliance"] = {[time()-5] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%a"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 5 Sec", chatLog[2].msg )
+end
+function test.test_formatStr_repTimeTilReaction()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%g"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 7 Day 8 Hr", chatLog[2].msg )
+end
+function test.test_formatStr_repCountTilReaction()
+	FB_repSaved = { ["Alliance"] = {[time()] = 15, [time()-15] = 15 } }
+	FB_options.formatString = "%c"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance 708 reps", chatLog[2].msg )
+end
+function test.test_formatStr_max()
+	FB_repSaved = nil
+	FB_repSaved = { ["Max"] = {[time()-130] = 15, [time()-120] = 15 } }
+	FB_options.formatString = "(%s %p): %l (%t) -> %n (%a) %c"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Max (Exalted ): 15 (30) -> 0 (2 Min) 0 reps", chatLog[2].msg )
+end
+
+function test.test_formatStr_combined()
+	FB_repSaved = { ["Alliance"] = {[time()-130] = 15, [time()-120] = 15 } }
+	FB_options.formatString = "(%s %p): %l (%t) -> %n (%a) in %g %c"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance (Honored 11.58%): 15 (30) -> 10610 (2 Min) in 7 Day 8 Hr 708 reps", chatLog[2].msg )
+end
+function test.test_formatStr_mine()
+	FB_repSaved = { ["Alliance"] = {[time()-130] = 15, [time()-120] = 15 } }
+	FB_options.formatString = "(%s %p): %l (%t) -> %n (%a) %c"
+	FB.Command( "rep" )
+	assertEquals( "Faction Bars> Alliance (Honored 11.58%): 15 (30) -> 10610 (2 Min) 708 reps", chatLog[2].msg )
+end
+
 
 test.run()
