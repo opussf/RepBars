@@ -38,6 +38,7 @@ function FB.OptionsPanel_Refresh()
 	FB.OptionsPanel_NumBarSlider_Init(FactionBarsOptionsFrame_NumBars)
 	FB.OptionsPanel_TrackPeriodSlider_Init(FactionBarsOptionsFrame_TrackPeriodSlider)
 	FactionBarsOptionsFrame_AutoChangeWatchedBox:SetChecked( FB_options["autoChangeWatched"] )
+	FactionBarsOptionsFrame_HideOnCombat:SetChecked( FB_options["combatHide"] )
 	FB.OptionsPanel_EditBox_OnShow( FactionBarsOptionsFrame_FormatStringEditBox, "formatString" )
 	local helpStr = {}
 	for k,v in pairs( FB.formats ) do

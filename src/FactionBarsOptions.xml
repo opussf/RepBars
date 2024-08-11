@@ -61,11 +61,24 @@ xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"autoChangeWatched")</PostClick>
 				</Scripts>
 			</CheckButton>
+			<CheckButton name="$parent_HideOnCombat" inherits="FactionBarOptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent_AutoChangeWatchedBox" relativePoint="BOTTOMLEFT">
+						<Offset><AbsDimension x="0" y="-8"/></Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>self.tooltip = "Check this to auto hide the bars in combat.";</OnLoad>
+					<OnShow>FB.OptionsPanel_CheckButton_OnShow(self,"combatHide","Hide during combat");</OnShow>
+					<PostClick>FB.OptionsPanel_CheckButton_PostClick(self,"combatHide")</PostClick>
+				</Scripts>
+			</CheckButton>
+
 			<EditBox name="$parent_FormatStringEditBox" inherits="InputBoxTemplate" autoFocus="false">
 				<Size x="390" y="16"/>
 				<Anchors>
-					<Anchor point="TOPLEFT" relativeTo="$parent_AutoChangeWatchedBox" relativePoint="BOTTOMLEFT">
-						<Offset x="0" y="-20" />
+					<Anchor point="TOPLEFT" relativeTo="$parent_HideOnCombat" relativePoint="BOTTOMLEFT">
+						<Offset x="0" y="-8" />
 					</Anchor>
 				</Anchors>
 				<Scripts>
