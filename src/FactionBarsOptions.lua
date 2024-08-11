@@ -2,6 +2,7 @@ FB.defaultOptions = {
 	["trackPeriod"] = "1 hour",
 	["numBars"] = 5,
 	["showStanding"] = true,
+	["formatString"] = "(%s %p): %l (%t) -> %n (%a) %c",
 }
 
 FB_options = {}
