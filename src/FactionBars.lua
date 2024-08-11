@@ -82,7 +82,7 @@ function FB.OnLoad()
 end
 function FB.OnUpdate( arg1 )
 	now = time()
-	if FB.lastUpdate + FB.updateInterval <= now then
+	if not FB.hide and FB.lastUpdate + FB.updateInterval <= now then
 		FB.GenerateBarData()
 		FB.UpdateBars()
 		FB.lastUpdate = now
