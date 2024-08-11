@@ -72,6 +72,8 @@ function FB.OnLoad()
 	-- COMBAT_TEXT_UPDATE( messageType, faction, amount )
 	FB.sessionStart = time()
 	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
+	FB_Frame:RegisterEvent( "PLAYER_REGEN_ENABLED" )
+	FB_Frame:RegisterEvent( "PLAYER_REGEN_DISABLED" )
 	-- FB_Frame:RegisterEvent( "UPDATE_FACTION" )  -- any faction gets changed.
 	-- UPDATE_FACTION
 	for _,ts in pairs( FB.timeFrames ) do
@@ -87,16 +89,6 @@ function FB.OnUpdate( arg1 )
 	end
 end
 -- Events
--- function FB.UPDATE_FACTION( ... )
--- 	a, b, c = ...
--- 	FB.Print( "Update_Faction( <table>, "..(b or "nil")..", "..(c or "nil")..")" )
--- 	FB.a = a
--- 	-- if a[0] then
--- 		-- for k, v in pairs( a[0] ) do
--- 			-- FB.Print( "a."..k.."="..v )
--- 		-- end
--- 	-- end
--- end
 function FB.VARIABLES_LOADED()
 	FB_Frame:UnregisterEvent( "VARIABLES_LOADED" )
 	FB.Print( "Loaded version: "..FB_MSG_VERSION )
@@ -105,6 +97,18 @@ function FB.VARIABLES_LOADED()
 	FB.OptionsPanel_Reset()
 	FB.XHFrame()
 	FB_Frame:Show()  -- Do this just in case it has bars to show.  It will hide itself if it does not.
+end
+function FB.PLAYER_REGEN_DISABLED()
+	-- combat start
+	if FB_options.combatHide then
+		FB.hide = true
+		FB_Frame:Hide()
+	end
+end
+function FB.PLAYER_REGEN_ENABLED()
+	-- combat ends
+	FB.hide = nil
+	FB_Frame:Show()
 end
 function FB.XHFrame()
 	if XHFrame then
