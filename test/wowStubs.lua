@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  August 11 2024
--- Revision:  9.4.3-13-gb4f594c
+-- Date    :  August 13 2024
+-- Revision:  9.4.3-16-g4300a9c
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -618,11 +618,23 @@ end
 EditBox = {
 		["SetText"] = function(self,text) self.text=text; end,
 		["SetCursorPosition"] = function(self,pos) self.cursorPosition=pos; end,
-
 }
 function CreateEditBox( name, ... )
 	me = {}
 	for k,v in pairs(EditBox) do
+		me[k] = v
+	end
+	me.name = name
+	return me
+end
+Button = {
+	["enabled"] = true,
+	["SetEnabled"] = function(self,enabled) self.enabled = enabled; end,
+	["IsEnabled"] = function(self) return self.enabled; end,
+}
+function CreateButton( name, ... )
+	me = {}
+	for k,v in pairs(Button) do
 		me[k] = v
 	end
 	me.name = name
@@ -862,11 +874,6 @@ function GetComparisonStatistic( achievementID )
 	-- returns: string - the value of the requested statistic
 	return Achievements[achievementID].value
 end
-function GetAddOnMetadata( addon, field )
-	-- returns addonData[field] for 'addon'
-	-- local addonData = { ["version"] = "1.0", }
-	return addonData[field]
-end
 function GetCategoryList()
 	-- http://www.wowwiki.com/API_GetCategoryList
 	-- Returns a table of achievement categories
@@ -883,6 +890,18 @@ function GetCategoryNumAchievements( catID )
 	-- numCompleted: Number of completed achievements (or 0 for stats)
 	-- numIncomplete: Number of incomplete achievements
 	return 5,0,5
+end
+
+C_AddOns = {}
+function C_AddOns.GetAddOnMetadata( addon, field )
+	-- returns addonData[field] for 'addon'
+	-- local addonData = { ["version"] = "1.0", }
+	return addonData[field]
+end
+function C_AddOns.GetNumAddOns()
+	return 1
+end
+function C_AddOns.LoadAddOn( addonName )
 end
 
 C_Container = {}
@@ -1330,8 +1349,6 @@ end
 function IsResting()
 	return true
 end
-function LoadAddOn()
-end
 function NumTaxiNodes()
 	-- http://www.wowwiki.com/API_NumTaxiNodes
 	local count = 0
@@ -1536,13 +1553,12 @@ end
 function UnitAffectingCombat( unit )
 	return false
 end
-function UnitAura( unit, index, filter )
+C_UnitAuras = {}
+function C_UnitAuras.GetAuraDataByIndex( unit, index )
 	-- @TODO: Look this up to get a better idea of what this function does.
-	-- Returns the aura name
-	-- unit, [index] [,filter]
-	-- Returns True or nil
+	-- Returns an auraData table
 	if( UnitAuras[unit] and UnitAuras[unit][index] ) then
-		return UnitAuras[unit][index].name
+		return UnitAuras[unit][index]
 	end
 end
 function UnitClass( who )
@@ -1680,6 +1696,12 @@ function GetEquipmentSetInfoByName( nameIn )
 			return EquipmentSets[i].icon, i-1
 		end
 	end
+end
+function CanMerchantRepair()
+	return true
+end
+function CanGuildBankRepair()
+	return true
 end
 
 --http://wow.gamepedia.com/Patch_7.0.3/API_changes

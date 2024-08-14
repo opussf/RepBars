@@ -1,7 +1,7 @@
 FB_SLUG, FB = ...
-FB_MSG_ADDONNAME = GetAddOnMetadata( FB_SLUG, "Title" )
-FB_MSG_AUTHOR    = GetAddOnMetadata( FB_SLUG, "Author" )
-FB_MSG_VERSION   = GetAddOnMetadata( FB_SLUG, "Version" )
+FB_MSG_ADDONNAME = C_AddOns.GetAddOnMetadata( FB_SLUG, "Title" )
+FB_MSG_AUTHOR    = C_AddOns.GetAddOnMetadata( FB_SLUG, "Author" )
+FB_MSG_VERSION   = C_AddOns.GetAddOnMetadata( FB_SLUG, "Version" )
 
 FB_repSaved = {}
 FB_factionmap = {}
