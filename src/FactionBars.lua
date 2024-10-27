@@ -53,7 +53,8 @@ FB.patterns = {
 	["FACTION_STANDING_DECREASED"] = -1,
 	["FACTION_STANDING_INCREASED"] = 1,
 	["FACTION_STANDING_DECREASED_ACCOUNT_WIDE"] = -1,
-	["FACTION_STANDING_INCREASED_ACCOUNT_WIDE"] = 1
+	["FACTION_STANDING_INCREASED_ACCOUNT_WIDE"] = 1,
+	["FACTION_STANDING_INCREASED_GUARDIAN"] = 1,
 }
 
 function FB.Print( msg, showName )
@@ -321,12 +322,19 @@ function FB.GenerateBarData()
 
 			if track ~= 0 then
 				local rate = ratetrack / 1800
+				paragonData = {C_Reputation.GetFactionParagonInfo( FB.GetFactionIDByName( factionName ) )}
+				if paragonData[1] then
+					factionData.nextReactionThreshold = paragonData[2]
+					factionData.currentStanding = paragonData[1]
+					factionData.currentReactionThreshold = 0
+				end
 				factionData.timeTillNext = SecondsToTime((factionData.nextReactionThreshold - factionData.currentStanding) /
 									 (( rate > 0) and rate or (track / FB.timeFrames[FB_options.trackPeriod])))
 				-- calculate timeTillNext based on 30 minutes, or the range if no data in the last 30 min.
 				factionData.repsToGo = math.ceil((factionData.nextReactionThreshold - factionData.currentStanding) / history[maxTS])
 				factionData.repsToGo = factionData.repsToGo.." rep"..(factionData.repsToGo~=1 and "s" or "")
-				paragonData = C_Reputation.GetFactionParagonInfo( FB.GetFactionIDByName( factionName ) )
+
+				--print( factionData.reaction, paragonData and paragonData[1], paragonData and paragonData[2])
 				FB_barData[factionName] = {
 					["maxTS"] = maxTS,
 					["minTS"] = minTS,
@@ -336,11 +344,11 @@ function FB.GenerateBarData()
 					["currentStanding"] = factionData.currentStanding,
 					["reaction"] = factionData.reaction,
 					["barColor"] = _G["FACTION_BAR_COLORS"][factionData.reaction],
-					["paragonCurrentValue"] = (paragonData and paragonData.currentValue),
-					["paragonThreshold"] = (paragonData and paragonData.threshold),
-					["paragonRewardQuestID"] = (paragonData and paragonData.rewardQuestID),
-					["paragonHasRewardPending"] = (paragonData and paragonData.hasRewardPending),
-					["paragonTooLowLevelForParagon"] = (paragonData and paragonData.tooLowLevelForParagon),
+					["paragonCurrentValue"] = (paragonData and paragonData[1]),
+					["paragonThreshold"] = (paragonData and paragonData[2]),
+					["paragonRewardQuestID"] = (paragonData and paragonData[3]),
+					["paragonHasRewardPending"] = (paragonData and paragonData[4]),
+					["paragonTooLowLevelForParagon"] = (paragonData and paragonData[5]),
 				}
 			else
 				FB_barData[factionName] = nil
