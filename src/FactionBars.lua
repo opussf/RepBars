@@ -72,7 +72,7 @@ function FB.OnLoad()
 	ChatFrame_AddMessageEventFilter( "CHAT_MSG_COMBAT_FACTION_CHANGE", FB.FactionGainEvent )
 	-- COMBAT_TEXT_UPDATE( messageType, faction, amount )
 	FB.sessionStart = time()
-	FB_Frame:RegisterEvent( "VARIABLES_LOADED" )
+	FB_Frame:RegisterEvent( "LOADING_SCREEN_DISABLED" )
 	FB_Frame:RegisterEvent( "PLAYER_REGEN_ENABLED" )
 	FB_Frame:RegisterEvent( "PLAYER_REGEN_DISABLED" )
 	-- FB_Frame:RegisterEvent( "UPDATE_FACTION" )  -- any faction gets changed.
@@ -90,8 +90,8 @@ function FB.OnUpdate( arg1 )
 	end
 end
 -- Events
-function FB.VARIABLES_LOADED()
-	FB_Frame:UnregisterEvent( "VARIABLES_LOADED" )
+function FB.LOADING_SCREEN_DISABLED()
+	FB_Frame:UnregisterEvent( "LOADING_SCREEN_DISABLED" )
 	FB.Print( "Loaded version: "..FB_MSG_VERSION )
 
 	FB.AssureBars( FB_options.numBars )
