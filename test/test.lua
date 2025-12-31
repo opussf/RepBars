@@ -3,10 +3,8 @@
 require "wowTest"
 
 test.outFileName = "testOut.xml"
--- test.coberturaFileName = "../coverage.xml"
-
--- FactionBarsOptionsFrame = CreateFrame()
--- FactionBarsOptionsFrame_NumBars = CreateSlider("FactionBarsOptionsFrame_NumBars")
+test.coberturaFileName = "../coverage.xml"
+test.coverageReportPercent = true
 
 -- require the file to test
 ParseTOC( "../src/FactionBars.toc" )
