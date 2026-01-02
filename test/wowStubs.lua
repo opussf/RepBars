@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  December 24 2025
--- Revision:  9.7.1-6-ga34c899
+-- Date    :  January 01 2026
+-- Revision:  9.7.1-7-g327449e
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -2098,6 +2098,13 @@ end
 ----------
 C_Item = {}
 C_Item.GetItemCount = GetItemCount
+function C_Item.GetItemID( itemLocation )
+	return 7073
+end
+function C_Item.IsBound( itemLocation )
+	return false
+end
+
 
 ----------
 -- Menu
@@ -2231,12 +2238,6 @@ C_GossipInfo = {}
 function C_GossipInfo.GetFriendshipReputation( idIn )
 	return {["maxRep"]=0, ["text"]="", ["reversedColor"]=false, ["reaction"]="", ["standing"]=0, ["reactionThreshold"]=0, ["friendshipFactionID"]=0, ["textrue"]=0}
 end
-
-----------
--- C_Item
-----------
-C_Item = {}
-C_Item.GetItemCount = GetItemCount
 
 ----------
 -- Menu
@@ -2383,6 +2384,17 @@ function C_Map.GetBestMapForUnit( unitStr )
 end
 function C_Map.GetMapInfo( mapID )
 	return { mapID=5, name="map name", parentMapID=0, mapType=1, flags=2 }
+end
+
+----------
+-- ItemLocation
+----------
+ItemLocation = {}
+function ItemLocation.CreateFromBagAndSlot( self, bagID, slotID )
+	return self
+end
+function ItemLocation.IsValid( self )
+	return true
 end
 
 -----------------------------------------
