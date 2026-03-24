@@ -55,6 +55,7 @@ FB.patterns = {
 	["FACTION_STANDING_DECREASED_ACCOUNT_WIDE"] = -1,
 	["FACTION_STANDING_INCREASED_ACCOUNT_WIDE"] = 1,
 	["FACTION_STANDING_INCREASED_GUARDIAN"] = 1,
+	["%s has gained %d experience."] = 1,
 }
 
 function FB.Print( msg, showName )
@@ -187,7 +188,7 @@ function FB.FactionGainEvent( frame, event, message, ...)
 	local factionName = nil
 	for factionType, valueModifier in pairs( FB.patterns ) do
 		if not FB[factionType.."_PATTERN"] then
-			FB[factionType.."_PATTERN"] = FB.FormatToPattern(_G[factionType])
+			FB[factionType.."_PATTERN"] = FB.FormatToPattern(_G[factionType] or factionType)
 		end
 		if not factionName then
 			_, _, factionName, amount = string.find( message, FB[factionType.."_PATTERN"] )
