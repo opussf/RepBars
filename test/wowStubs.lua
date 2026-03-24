@@ -1,7 +1,7 @@
 -----------------------------------------
 -- Author  :  Opussf
--- Date    :  January 01 2026
--- Revision:  9.7.1-7-g327449e
+-- Date    :  March 05 2026
+-- Revision:  9.7.1-13-ge03bd6e
 -----------------------------------------
 -- These are functions from wow that have been needed by addons so far
 -- Not a complete list of the functions.
@@ -232,6 +232,8 @@ EquipmentSets = {
 -- Instance variables
 LE_PARTY_CATEGORY_HOME = 1
 LE_PARTY_CATEGORY_INSTANCE = 2
+LE_PET_JOURNAL_FILTER_COLLECTED = 1
+LE_PET_JOURNAL_FILTER_NOT_COLLECTED = 2
 -- WowToken
 TokenPrice = 123456 -- 12G 34S 45C
 --- Factions
@@ -821,10 +823,7 @@ function CursorHasItem()
 	end
 end
 function DoEmote( emote, target )
-	table.insert( actionLog,
-			"DoEmote( "..(emote or "nil")..", "..(target or "nil").." )"
-	)
-	-- not tested as the only side effect is the character doing an emote
+	error("Don't use this.")
 end
 function EquipItemByName( itemIn, slotIDIn )
 	-- http://www.wowwiki.com/API_EquipItemByName
@@ -983,6 +982,13 @@ function GetCategoryNumAchievements( catID )
 	-- numCompleted: Number of completed achievements (or 0 for stats)
 	-- numIncomplete: Number of incomplete achievements
 	return 5,0,5
+end
+CVars = { lastCharacterIndex = 2 }
+function GetCVar( cvarName )
+	return CVars[cvarName]
+end
+function SetCVar( cvarName, value )
+	CVars[cvarName] = value
 end
 
 C_AddOns = {}
@@ -1166,13 +1172,7 @@ function GetMerchantItemLink( index )
 	end
 end
 function GetMerchantItemInfo( index )
-	--local itemName, texture, price, quantity, numAvailable, isUsable = GetMerchantItemInfo( i )
-	if MerchantInventory[ index ] then
-		local item = Items[ MerchantInventory[ index ].id ]
-		return item.name, item.texture, MerchantInventory[ index ].cost, MerchantInventory[ index ].quantity, -1, MerchantInventory[ index ].isUsable
---		local item = MerchantInventory[ index ]
---		return item.name, "", item.cost, item.quantity, -1, item.isUsable
-	end
+	error("This is deprecated")
 end
 function GetMerchantItemMaxStack( index )
 	-- Max allowable amount per purchase.  Hard code to 20 for now
@@ -1628,17 +1628,7 @@ function SendAddonMessage( prefix, text, type, target )
 	-- all characters 1-255 can be used (no NULL)
 end
 function SendChatMessage( msg, chatType, language, channel )
-	-- http://www.wowwiki.com/API_SendChatMessage
-	-- This could simulate sending text to the channel, in the language, and raise the correct event.
-	-- returns nil
-	-- append the parameters to chatLog
-	-- @TODO: Expand this
-
-	table.insert( chatLog,
-			{ ["msg"] = msg, ["chatType"] = chatType, ["language"] = language, ["channel"] = channel }
-	)
-
-	--print( string.format( "%s: %s", chatType, msg ) )
+	error("Use C_ChatInfo.SendChatMessage instead.")
 end
 function SetAchievementComparisonUnit( lookupStr )
 	-- mostly does nothing...  Just allows INSPECT_ACHIEVEMENT_READY to happen,
@@ -1647,6 +1637,9 @@ function SetAchievementComparisonUnit( lookupStr )
 end
 function ClearAchievementComparisonUnit()
 	-- mostly does nothing...
+end
+function SetItemButtonTexture( frame, iconID )
+	frame.iconID = iconID
 end
 function SetRaidTarget( target, iconID )
 	-- sets the raid icon ID on target
@@ -1852,6 +1845,9 @@ function C_EquipmentSet.GetIgnoredSlots( setNum )
 	-- True is ignored, false is not
 	return {}
 end
+function C_EquipmentSet.UseEquipmentSet( setNum )
+	-- Sets the current EquipmentSet
+end
 function GetEquipmentSetInfoByName( nameIn )
 	-- http://www.wowwiki.com/API_GetEquipmentSetInfo
 	-- Returns: icon, lessIndex = GetEquipmentSetInfoByName
@@ -2029,8 +2025,21 @@ function C_ChatInfo.IsAddonMessagePrefixRegistered( prefix )
 end
 function C_ChatInfo.RegisterAddonMessagePrefix( prefix )
 end
-function C_ChatInfo.SendAddonMessage()
+function C_ChatInfo.SendAddonMessage( prefix, msg, channel, target )
+	table.insert( chatLog,
+		{ ["msg"] = msg, ["chatType"] = "AddonMessage", ["channel"] = channel, ["prefix"] = prefix, ["target"] = target }
+	)
 	return true
+end
+function C_ChatInfo.SendChatMessage( msg, chatType, language, channel )
+	table.insert( chatLog,
+		{ ["msg"] = msg, ["chatType"] = chatType, ["language"] = language, ["channel"] = channel }
+	)
+end
+function C_ChatInfo.PerformEmote( emote, target )
+	table.insert( actionLog,
+			"PerformEmote( "..(emote or "nil")..", "..(target or "nil").." )"
+	)
 end
 
 ----------
@@ -2104,7 +2113,6 @@ end
 function C_Item.IsBound( itemLocation )
 	return false
 end
-
 
 ----------
 -- Menu
@@ -2332,6 +2340,9 @@ C_PetJournal.data = {
 		GUID = 12534
 	},
 }
+C_PetJournal.__filterFlags = 0xFF
+C_PetJournal.__sourcesFlags = 0xAA -- 10101010
+C_PetJournal.__typeFlags = 0x55 -- 01010101
 function C_PetJournal.GetSummonedPetGUID()
 	return C_PetJournal.data.summoned.GUID
 end
@@ -2339,6 +2350,47 @@ function C_PetJournal.GetPetInfoByPetID( petID )
 	-- speciesID, customName, level, xp, maxXp, displayID, isFavorite, name, icon, petType, creatureID, sourceText, description, isWild, canBattle, tradable, unique, obtainable = C_PetJournal.GetPetInfoByPetID(petID)
 	-- @TODO: Look this up
 	return 0,"CustomPetName",0,0,0,0,0,"PetName"
+end
+function C_PetJournal.GetSearchFilter()
+	return ""
+end
+function C_PetJournal.SetSearchFilter(newFilter)
+end
+function C_PetJournal.IsFilterChecked(index)
+	return (C_PetJournal.__filterFlags & bit.lshift(1, index))>0
+end
+function C_PetJournal.SetFilterChecked(filterID, checked)
+	if checked then
+		C_PetJournal.__filterFlags = C_PetJournal.__filterFlags | bit.lshift(1, filterID-1)
+	else
+		C_PetJournal.__filterFlags = C_PetJournal.__filterFlags & ~bit.lshift(1, filterID-1)
+	end
+end
+function C_PetJournal.GetNumPetSources()
+	return 8
+end
+function C_PetJournal.IsPetSourceChecked(index)
+	return (C_PetJournal.__sourcesFlags & bit.lshift(1, index))>0
+end
+function C_PetJournal.SetPetSourceChecked(index, checked)
+	if checked then
+		C_PetJournal.__sourcesFlags = C_PetJournal.__sourcesFlags | bit.lshift(1, index-1)
+	else
+		C_PetJournal.__sourcesFlags = C_PetJournal.__sourcesFlags & ~bit.lshift(1, index-1)
+	end
+end
+function C_PetJournal.GetNumPetTypes()
+	return 8
+end
+function C_PetJournal.IsPetTypeChecked(index, checked)
+	return (C_PetJournal.__typeFlags & bit.lshift(1, index))>0
+end
+function C_PetJournal.SetPetTypeFilter(index, checked)
+	if checked then
+		C_PetJournal.__typeFlags = C_PetJournal.__typeFlags | bit.lshift(1, index-1)
+	else
+		C_PetJournal.__typeFlags = C_PetJournal.__typeFlags & ~bit.lshift(1, index-1)
+	end
 end
 
 ----------
@@ -2395,6 +2447,47 @@ function ItemLocation.CreateFromBagAndSlot( self, bagID, slotID )
 end
 function ItemLocation.IsValid( self )
 	return true
+end
+
+----------
+-- C_MerchantFrame
+----------
+C_MerchantFrame = {}
+function C_MerchantFrame.GetItemInfo( index )
+	-- return: { hasExtendedCost -b, price -i, isUable -b, numAvailable -i (-1 = unlimited), name -s, isQuestStartItem -b,
+	--           stackCount -i, isPurchasable -b, texture -i }
+	if MerchantInventory[ index ] then
+		local itemInfo = Items[ MerchantInventory[ index ].id ]
+		return { hasExtededCost = MerchantInventory[ index ].currencies and true or false,
+				 price = MerchantInventory[ index ].cost,
+				 isUsable = MerchantInventory[ index ].isUsable and true or false,
+				 numAvailable = -1,
+				 name = itemInfo.name,
+				 isQuestStartItem = false,
+				 stackCount = MerchantInventory[ index ].quantity,
+				 isPurchasable = true,
+				 texture = itemInfo.texture
+		}
+	end
+end
+
+----------
+-- C_EncodingUtil
+----------
+C_EncodingUtil = {}
+function C_EncodingUtil.CompressString( strIn, method, level )
+	-- compresses.  Return the same string, for testing.
+	return strIn
+end
+function C_EncodingUtil.DecompressString( strIn, method )
+	-- decompresses.  Return the same string, for testing.
+	return strIn
+end
+
+--------
+-- 12.0.0 stubs
+function issecretvalue( value )
+	return false  -- default to false for now.
 end
 
 -----------------------------------------
